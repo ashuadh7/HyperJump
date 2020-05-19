@@ -80,7 +80,7 @@ public class CoucheronManager : MonoBehaviour
 
             GameObject newGameObject = new GameObject("Coucheron");
             newGameObject.transform.parent = this.transform;
-            DrawMeshFromPolygon(newGameObject, surfacePolygon, null, 0.1f);
+            DrawMeshFromPolygon(newGameObject, surfacePolygon, null);
         }
         ResetFrame();
     }
@@ -90,10 +90,32 @@ public class CoucheronManager : MonoBehaviour
         frame = new List<GameObject>();
     }
 
-    private void DrawMeshFromPolygon(GameObject go, List<Vector3> polygon, Material mat, float height)
+    private void DrawMeshFromPolygon(GameObject go, List<Vector3> polygon, Material mat)
     {
+        // TODO this is a workaround as the triagulation script was written for another purpose
+        // can be changed in the future
+        float heighestPoint = 0f;
+
+        foreach (Vector3 point in polygon)
+        {
+            if(point.y > heighestPoint)
+            {
+                heighestPoint = point.y;
+            }
+        }
+
+        List<Vector3> updatedPolygon = new List<Vector3>();
+
+        foreach (Vector3 point in polygon)
+        {
+            Vector3 temp = point;
+            temp.y -= heighestPoint;
+            updatedPolygon.Add(temp);
+        }
+
+        // TODO does at the moment only work with polygon that is defined anti clockwise
         MeshFilter meshFilter = go.AddComponent<MeshFilter>();
-        meshFilter.mesh = Triangulator.CreateExtrudedMeshFromPolygon(polygon, height);
+        meshFilter.mesh = Triangulator.CreateExtrudedMeshFromPolygon(updatedPolygon, heighestPoint);
         Renderer rend = go.AddComponent<MeshRenderer>();
         rend.material = mat;
     }
