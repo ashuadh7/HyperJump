@@ -14,14 +14,30 @@ namespace Valve.VR
     using UnityEngine;
     
     
-    public class SteamVR_Input_ActionSet_SphereSet : Valve.VR.SteamVR_ActionSet
+    public class SteamVR_Input_ActionSet_MySet : Valve.VR.SteamVR_ActionSet
     {
         
-        public virtual SteamVR_Action_Boolean SetSphere
+        public virtual SteamVR_Action_Boolean Click
         {
             get
             {
-                return SteamVR_Actions.sphereSet_SetSphere;
+                return SteamVR_Actions.mySet_Click;
+            }
+        }
+        
+        public virtual SteamVR_Action_Pose RightPose
+        {
+            get
+            {
+                return SteamVR_Actions.mySet_RightPose;
+            }
+        }
+        
+        public virtual SteamVR_Action_Vector2 Throttle
+        {
+            get
+            {
+                return SteamVR_Actions.mySet_Throttle;
             }
         }
     }

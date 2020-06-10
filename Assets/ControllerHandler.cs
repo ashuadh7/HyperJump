@@ -7,7 +7,6 @@ public class ControllerHandler : MonoBehaviour
 {
     public SteamVR_Action_Boolean SetSphere;
     public SteamVR_Input_Sources handType;
-    public GameObject framingObject;
 
     private SteamVR_Action_Pose pose;
     private Collider isColliding;
@@ -15,7 +14,7 @@ public class ControllerHandler : MonoBehaviour
     void Start()
     {
         SetSphere.AddOnStateUpListener(TriggerDown, handType);
-        pose = SteamVR_Input.GetAction<SteamVR_Action_Pose>("default", "Pose");
+        pose = SteamVR_Input.GetAction<SteamVR_Action_Pose>("MySet", "RightPose");
         isColliding = null;
     }
 

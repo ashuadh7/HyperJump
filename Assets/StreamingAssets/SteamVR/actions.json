@@ -83,8 +83,19 @@
       "requirement": "optional"
     },
     {
-      "name": "/actions/SphereSet/in/SetSphere",
-      "type": "boolean"
+      "name": "/actions/MySet/in/Click",
+      "type": "boolean",
+      "requirement": "mandatory"
+    },
+    {
+      "name": "/actions/MySet/in/RightPose",
+      "type": "pose",
+      "requirement": "mandatory"
+    },
+    {
+      "name": "/actions/MySet/in/Throttle",
+      "type": "vector2",
+      "requirement": "mandatory"
     }
   ],
   "action_sets": [
@@ -105,8 +116,8 @@
       "usage": "single"
     },
     {
-      "name": "/actions/SphereSet",
-      "usage": "single"
+      "name": "/actions/MySet",
+      "usage": "leftright"
     },
     {
       "name": "/actions/NewSet",

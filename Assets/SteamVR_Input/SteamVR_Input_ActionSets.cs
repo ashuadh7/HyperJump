@@ -25,7 +25,7 @@ namespace Valve.VR
         
         private static SteamVR_Input_ActionSet_mixedreality p_mixedreality;
         
-        private static SteamVR_Input_ActionSet_SphereSet p_SphereSet;
+        private static SteamVR_Input_ActionSet_MySet p_MySet;
         
         private static SteamVR_Input_ActionSet_NewSet p_NewSet;
         
@@ -61,11 +61,11 @@ namespace Valve.VR
             }
         }
         
-        public static SteamVR_Input_ActionSet_SphereSet SphereSet
+        public static SteamVR_Input_ActionSet_MySet MySet
         {
             get
             {
-                return SteamVR_Actions.p_SphereSet.GetCopy<SteamVR_Input_ActionSet_SphereSet>();
+                return SteamVR_Actions.p_MySet.GetCopy<SteamVR_Input_ActionSet_MySet>();
             }
         }
         
@@ -83,14 +83,14 @@ namespace Valve.VR
             SteamVR_Actions.p_platformer = ((SteamVR_Input_ActionSet_platformer)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_platformer>("/actions/platformer")));
             SteamVR_Actions.p_buggy = ((SteamVR_Input_ActionSet_buggy)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_buggy>("/actions/buggy")));
             SteamVR_Actions.p_mixedreality = ((SteamVR_Input_ActionSet_mixedreality)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_mixedreality>("/actions/mixedreality")));
-            SteamVR_Actions.p_SphereSet = ((SteamVR_Input_ActionSet_SphereSet)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_SphereSet>("/actions/SphereSet")));
+            SteamVR_Actions.p_MySet = ((SteamVR_Input_ActionSet_MySet)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_MySet>("/actions/MySet")));
             SteamVR_Actions.p_NewSet = ((SteamVR_Input_ActionSet_NewSet)(SteamVR_ActionSet.Create<SteamVR_Input_ActionSet_NewSet>("/actions/NewSet")));
             Valve.VR.SteamVR_Input.actionSets = new Valve.VR.SteamVR_ActionSet[] {
                     SteamVR_Actions._default,
                     SteamVR_Actions.platformer,
                     SteamVR_Actions.buggy,
                     SteamVR_Actions.mixedreality,
-                    SteamVR_Actions.SphereSet,
+                    SteamVR_Actions.MySet,
                     SteamVR_Actions.NewSet};
         }
     }
