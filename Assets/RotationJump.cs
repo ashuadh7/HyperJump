@@ -4,7 +4,9 @@ using UnityEngine;
 using Valve.VR;
 
 public class RotationJump : MonoBehaviour
-{   
+{
+    public float translationSpeedFactor;
+
     public float angleThreshold;
     public bool useRollInstead;
 
@@ -31,7 +33,7 @@ public class RotationJump : MonoBehaviour
     void Update()
     {
         // virtual translation
-        this.transform.position += this.transform.forward * axis.GetAxis(SteamVR_Input_Sources.Any).y * Time.deltaTime;
+        this.transform.position += this.transform.forward * axis.GetAxis(SteamVR_Input_Sources.Any).y * Time.deltaTime * translationSpeedFactor;
 
         // virtual rotation
         if (saturationTimer < 0)
@@ -48,7 +50,6 @@ public class RotationJump : MonoBehaviour
 
             if (rotation < 180 && rotation > angleThreshold)
             {
-                Debug.Log("Jump Right!");
                 float overshootInDegree = rotation - angleThreshold;
                 float multiplyer = 1;
                 if(enableIncreasingAngle)
@@ -67,7 +68,6 @@ public class RotationJump : MonoBehaviour
             }
             else if(rotation > 180 && rotation < 360 - angleThreshold)
             {
-                Debug.Log("Jump Left!");
                 float overshootInDegree = 360 - angleThreshold - rotation;
                 float multiplyer = 1;
                 if (enableIncreasingAngle)
