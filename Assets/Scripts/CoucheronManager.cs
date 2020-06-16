@@ -36,10 +36,10 @@ public class CoucheronManager : MonoBehaviour
         frame = new List<GameObject>(); 
     }
 
-
     public void AddSphere(Vector3 position)
     {
-        GameObject go = Instantiate(framingObject, position, Quaternion.identity, this.transform);
+        GameObject go = Instantiate(framingObject, Vector3.zero, Quaternion.identity, this.transform);
+        go.transform.localPosition = position;
         frame.Add(go);
 
         if (frame.Count == 1)
