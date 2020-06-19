@@ -54,8 +54,16 @@
 
 					float4 coords = screenCoords(i.uv);
 					float radius = length(coords.x / (_ScreenParams.x / 2)) / 2;
-					float avMin = (1 - _AV) - _Feather;
-					float avMax = (1 - _AV) + _Feather;
+
+					if (_AV > 0 && coords.x < 0 || 
+						_AV < 0 && coords.x > 0)
+					{
+						radius = 0;
+					}
+
+					float avMin = (1 - abs(_AV)) - _Feather;
+					float avMax = (1 - abs(_AV)) + _Feather;
+
 					float t = saturate((radius - avMin) / (avMax - avMin));
 
 					fixed4 effect = fixed4(0,0,1,0);

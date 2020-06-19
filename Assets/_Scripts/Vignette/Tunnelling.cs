@@ -65,7 +65,7 @@ namespace Sigtrap.ImageEffects
 
         void Update()
         {
-            float av = Mathf.Abs(transform.GetComponentInParent<RotationJump>().GetRelativDistanceToJump()) * maxEffect;
+            float av = transform.GetComponentInParent<RotationJump>().GetRelativDistanceToJump() * maxEffect;
 
             _av = Mathf.SmoothDamp(_av, av, ref _avSlew, smoothTime);
 
@@ -77,12 +77,9 @@ namespace Sigtrap.ImageEffects
         {
             // Update eye matrices
             Matrix4x4 local;
-#if UNITY_2017_2_OR_NEWER
+
             if (UnityEngine.XR.XRSettings.enabled)
             {
-#else
-			if (UnityEngine.VR.VRSettings.enabled) {
-#endif
                 local = _cam.transform.parent.worldToLocalMatrix;
             }
             else
