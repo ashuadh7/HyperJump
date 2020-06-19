@@ -5,20 +5,41 @@ using Valve.VR;
 
 public class RotationJump : MonoBehaviour
 {
+    #region Public Fields
+    [Header("Jump Settings")]
+    [Tooltip("Enables audio feedback for jumping.")]
     public bool enableAudioFeedback;
+
+    [Tooltip("Changes the speed of forward and backward translation.")]
+    [Range(0f, 20f)]
     public float translationSpeedFactor;
 
     public float angleThreshold;
+
+    [Tooltip("Use head roll instead of head yaw.")]
     public bool useRollInstead;
 
+    [Tooltip("Defines the default, unmodified size of a jump rotation in degree.")]
+    [Range(0f, 90f)]
     public float defaultJumpSize;
+
+    [Tooltip("Defines the minimal time between two jumps.")]
+    public float maxSaturationTime;
+
+    [Header("Jump Size Increases")]
+    [Tooltip("Enables the jump size to increase being futher over the threshold.")]
     public bool enableIncreasingAngle;
+
+    [Tooltip("When increasing angle is activ this gives the amount of difference in degree that effectivly doubles the jump size.")]
     public float jumpDoulblingAngle;
 
-    public float maxSaturationTime;
+    [Header("Jump Time Decreases")]
+    [Tooltip("Enables the jump saturation time to dencrease being futher over the threshold.")]
     public bool enableDecreasingTime;
-    public float timeHalfingAngle;
 
+    [Tooltip("When dencreasing saturation time is activ this gives the amount of difference in degree nessesary to effectivly halfen the saturation time.")]
+    public float timeHalfingAngle;
+    #endregion
 
     private float saturationTimer;
     private SteamVR_Action_Vector2 axis;
