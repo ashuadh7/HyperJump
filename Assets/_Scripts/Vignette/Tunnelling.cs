@@ -67,9 +67,7 @@ namespace Sigtrap.ImageEffects
         {
             float av = transform.GetComponentInParent<RotationJump>().GetRelativDistanceToJump() * maxEffect;
 
-            _av = Mathf.SmoothDamp(_av, av, ref _avSlew, smoothTime);
-
-            _mat.SetFloat(_propAV, _av);
+            _mat.SetFloat(_propAV, av);
             _mat.SetFloat(_propFeather, feather);
         }
 

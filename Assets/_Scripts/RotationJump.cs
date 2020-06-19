@@ -122,6 +122,6 @@ public class RotationJump : MonoBehaviour
 
     public float GetRelativDistanceToJump()
     {
-        return reltativDistanceToJump;
+        return Mathf.Sign(reltativDistanceToJump) * (Mathf.Pow(1000, Mathf.Abs(reltativDistanceToJump)) - 1) / (1000 - 1);
     }
 }
