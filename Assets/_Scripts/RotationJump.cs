@@ -23,11 +23,17 @@ public class RotationJump : MonoBehaviour
     private float saturationTimer;
     private SteamVR_Action_Vector2 axis;
 
+    // -1 jump left, 0 center, 1 right
+    private float reltativDistanceToJump;
+
+
     // Start is called before the first frame update
     void Start()
     {
         saturationTimer = maxSaturationTime;
+        reltativDistanceToJump = 0;
         axis = SteamVR_Input.GetAction<SteamVR_Action_Vector2>("MySet", "Throttle");
+
     }
 
     // Update is called once per frame
@@ -36,20 +42,33 @@ public class RotationJump : MonoBehaviour
         // virtual translation
         this.transform.position += this.transform.forward * axis.GetAxis(SteamVR_Input_Sources.Any).y * Time.deltaTime * translationSpeedFactor;
 
+        float rotation;
+
+        // user roll or yaw?
+        if (!useRollInstead)
+        {
+            rotation = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.y % 360;
+        }
+        else
+        {
+            rotation = (360 - GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.z) % 360;
+        }
+
+        // clculate relative distance to jump
+        if (rotation < 180)
+        {
+            reltativDistanceToJump = rotation / angleThreshold;
+        }
+        else if (rotation > 180)
+        {
+            reltativDistanceToJump = -(360 - rotation) / angleThreshold;
+        }
+        reltativDistanceToJump = Mathf.Clamp(reltativDistanceToJump, -1, 1);
+
         // virtual rotation
         if (saturationTimer < 0)
         {
-            float rotation;
-            if (!useRollInstead)
-            {
-                rotation = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.y % 360;
-            }
-            else
-            {
-                rotation = (360 - GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.z) % 360;
-            }
-
-            if (rotation < 180 && rotation > angleThreshold)
+            if (reltativDistanceToJump == 1)
             { 
                 if(enableAudioFeedback)
                 {
@@ -72,7 +91,7 @@ public class RotationJump : MonoBehaviour
                 saturationTimer = maxSaturationTime / multiplyer;
                 
             }
-            else if(rotation > 180 && rotation < 360 - angleThreshold)
+            else if(reltativDistanceToJump == -1)
             {
                 if (enableAudioFeedback)
                 {
@@ -99,5 +118,10 @@ public class RotationJump : MonoBehaviour
         {
             saturationTimer -= Time.deltaTime;
         }   
+    }
+
+    public float GetRelativDistanceToJump()
+    {
+        return Mathf.Sign(reltativDistanceToJump) * (Mathf.Pow(1000, Mathf.Abs(reltativDistanceToJump)) - 1) / (1000 - 1);
     }
 }
