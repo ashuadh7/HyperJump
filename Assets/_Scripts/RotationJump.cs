@@ -15,6 +15,9 @@ public class RotationJump : MonoBehaviour
 
     public float speedFactorOfContinuesRotation;
 
+    [Tooltip("This option enables continues rotation between two jumps.")]
+    public bool enableContinuesRotationBetweenJumps;
+
     [Tooltip("Changes the speed of forward and backward translation.")]
     [Range(0f, 20f)]
     public float translationSpeedFactor;
@@ -46,19 +49,19 @@ public class RotationJump : MonoBehaviour
     public float timeHalfingAngle;
     #endregion
 
-    private float saturationTimer;
-    private SteamVR_Action_Vector2 axis;
+    private float _saturationTimer;
+    private SteamVR_Action_Vector2 _axis;
 
     // -1 jump left, 0 center, 1 right
-    private float reltativDistanceToJump;
+    private float _reltativDistanceToJump;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        saturationTimer = maxSaturationTime;
-        reltativDistanceToJump = 0;
-        axis = SteamVR_Input.GetAction<SteamVR_Action_Vector2>("MySet", "Throttle");
+        _saturationTimer = maxSaturationTime;
+        _reltativDistanceToJump = 0;
+        _axis = SteamVR_Input.GetAction<SteamVR_Action_Vector2>("MySet", "Throttle");
 
     }
 
@@ -66,104 +69,129 @@ public class RotationJump : MonoBehaviour
     void Update()
     {
         // virtual translation
-        this.transform.position += this.transform.forward * axis.GetAxis(SteamVR_Input_Sources.Any).y * Time.deltaTime * translationSpeedFactor;
+        //////////////////////////////////////
+        this.transform.position += this.transform.forward * _axis.GetAxis(SteamVR_Input_Sources.Any).y * Time.deltaTime * translationSpeedFactor;
 
-        float rotation;
+        // virtual roation
+        /////////////////////////////////////
+        float rotation = GetHeadRotation();
+        _reltativDistanceToJump = CalculateRelativeDistanceToJumpRotation(rotation);
 
-        // user roll or yaw?
-        if (!useRollInstead)
+        DoContinuesRotation();
+        
+        if (_saturationTimer < 0)
         {
-            rotation = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.y % 360;
+            DoJumpRotation(rotation);
         }
         else
         {
-            rotation = (360 - GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.z) % 360;
-        }
-
-        // clculate relative distance to jump
-        if (rotation < 180)
-        {
-            reltativDistanceToJump = rotation / angleThreshold;
-        }
-        else if (rotation > 180)
-        {
-            reltativDistanceToJump = -(360 - rotation) / angleThreshold;
-        }
-        reltativDistanceToJump = Mathf.Clamp(reltativDistanceToJump, -1, 1);
-
-        // continious rotation right
-        if (reltativDistanceToJump > 1 - ratioOfContinuesRotation)
-        {
-            this.transform.Rotate(Vector3.up, 10.0f * speedFactorOfContinuesRotation * Time.deltaTime * ((reltativDistanceToJump - ratioOfContinuesRotation) * 1 / ratioOfContinuesRotation));
-
-        }
-
-        //continious rotation left
-        if (reltativDistanceToJump < -1 + ratioOfContinuesRotation)
-        {
-            this.transform.Rotate(Vector3.up, -10.0f * speedFactorOfContinuesRotation * Time.deltaTime * ((-reltativDistanceToJump - ratioOfContinuesRotation) * 1 / ratioOfContinuesRotation));
-
-        }
-
-        // virtual rotation
-        if (saturationTimer < 0)
-        {
-            // jump rotation right
-            if (reltativDistanceToJump == 1)
-            { 
-                if(enableAudioFeedback)
-                {
-                    GetComponent<AudioSource>().Play();
-                }
-                
-                float overshootInDegree = rotation - angleThreshold;
-                float multiplyer = 1;
-                if(enableIncreasingAngle)
-                {
-                    multiplyer += overshootInDegree / jumpDoulblingAngle;
-                }
-                this.transform.Rotate(Vector3.up, defaultJumpSize * multiplyer);
-
-                multiplyer = 1;
-                if (enableDecreasingTime)
-                {
-                    multiplyer += overshootInDegree / timeHalfingAngle;
-                }
-                saturationTimer = maxSaturationTime / multiplyer;
-                
-            }
-            // jump rotation left
-            else if(reltativDistanceToJump == -1)
-            {
-                if (enableAudioFeedback)
-                {
-                    GetComponent<AudioSource>().Play();
-                }
-
-                float overshootInDegree = 360 - angleThreshold - rotation;
-                float multiplyer = 1;
-                if (enableIncreasingAngle)
-                {
-                    multiplyer += overshootInDegree / jumpDoulblingAngle;
-                }
-                this.transform.Rotate(Vector3.up, -defaultJumpSize * multiplyer);
-
-                multiplyer = 1;
-                if (enableDecreasingTime)
-                {
-                    multiplyer += overshootInDegree / timeHalfingAngle;
-                }
-                saturationTimer = maxSaturationTime / multiplyer;
-            }
-        }
-        else
-        {
-            saturationTimer -= Time.deltaTime;
+            _saturationTimer -= Time.deltaTime;
         }   
     }
 
     public float GetRelativDistanceToJump()
     {
-        return Mathf.Sign(reltativDistanceToJump) * (Mathf.Pow(1000, Mathf.Abs(reltativDistanceToJump)) - 1) / (1000 - 1);
+        return Mathf.Sign(_reltativDistanceToJump) * (Mathf.Pow(1000, Mathf.Abs(_reltativDistanceToJump)) - 1) / (1000 - 1);
+    }
+
+    private float GetHeadRotation()
+    {
+        // user roll or yaw?
+        if (!useRollInstead)
+        {
+            return GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.y % 360;
+        }
+        else
+        {
+            return (360 - GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.z) % 360;
+        }
+    }
+
+    private float CalculateRelativeDistanceToJumpRotation(float rotation)
+    {
+        float res;
+        
+        // calculate relative distance to jump
+        if (rotation < 180)
+        {
+            res = rotation / angleThreshold;
+        }
+        else
+        {
+            res = -(360 - rotation) / angleThreshold;
+        }
+
+        return Mathf.Clamp(res, -1, 1);
+    }
+
+    private void DoContinuesRotation()
+    {
+        if (enableContinuesRotationBetweenJumps || _saturationTimer < 0)
+        {
+            // continious rotation right
+            if (_reltativDistanceToJump > 1 - ratioOfContinuesRotation)
+            {
+                this.transform.Rotate(Vector3.up, 10.0f * speedFactorOfContinuesRotation * Time.deltaTime * ((_reltativDistanceToJump - ratioOfContinuesRotation) * 1 / ratioOfContinuesRotation));
+
+            }
+
+            //continious rotation left
+            if (_reltativDistanceToJump < -1 + ratioOfContinuesRotation)
+            {
+                this.transform.Rotate(Vector3.up, -10.0f * speedFactorOfContinuesRotation * Time.deltaTime * ((-_reltativDistanceToJump - ratioOfContinuesRotation) * 1 / ratioOfContinuesRotation));
+
+            }
+        }
+    }
+
+    private void DoJumpRotation(float rotation)
+    {
+        // jump rotation right
+        if (_reltativDistanceToJump == 1)
+        {
+            if (enableAudioFeedback)
+            {
+                GetComponent<AudioSource>().Play();
+            }
+
+            float overshootInDegree = rotation - angleThreshold;
+            float multiplyer = 1;
+            if (enableIncreasingAngle)
+            {
+                multiplyer += overshootInDegree / jumpDoulblingAngle;
+            }
+            this.transform.Rotate(Vector3.up, defaultJumpSize * multiplyer);
+
+            multiplyer = 1;
+            if (enableDecreasingTime)
+            {
+                multiplyer += overshootInDegree / timeHalfingAngle;
+            }
+            _saturationTimer = maxSaturationTime / multiplyer;
+
+        }
+        // jump rotation left
+        else if (_reltativDistanceToJump == -1)
+        {
+            if (enableAudioFeedback)
+            {
+                GetComponent<AudioSource>().Play();
+            }
+
+            float overshootInDegree = 360 - angleThreshold - rotation;
+            float multiplyer = 1;
+            if (enableIncreasingAngle)
+            {
+                multiplyer += overshootInDegree / jumpDoulblingAngle;
+            }
+            this.transform.Rotate(Vector3.up, -defaultJumpSize * multiplyer);
+
+            multiplyer = 1;
+            if (enableDecreasingTime)
+            {
+                multiplyer += overshootInDegree / timeHalfingAngle;
+            }
+            _saturationTimer = maxSaturationTime / multiplyer;
+        }
     }
 }
