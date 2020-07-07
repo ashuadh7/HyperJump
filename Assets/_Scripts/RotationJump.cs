@@ -10,6 +10,11 @@ public class RotationJump : MonoBehaviour
     [Tooltip("Enables audio feedback for jumping.")]
     public bool enableAudioFeedback;
 
+    [Range(0f, 1f)]
+    public float ratioOfContinuesRotation;
+
+    public float speedFactorOfContinuesRotation;
+
     [Tooltip("Changes the speed of forward and backward translation.")]
     [Range(0f, 20f)]
     public float translationSpeedFactor;
@@ -86,9 +91,24 @@ public class RotationJump : MonoBehaviour
         }
         reltativDistanceToJump = Mathf.Clamp(reltativDistanceToJump, -1, 1);
 
+        // continious rotation right
+        if (reltativDistanceToJump > 1 - ratioOfContinuesRotation)
+        {
+            this.transform.Rotate(Vector3.up, 10.0f * speedFactorOfContinuesRotation * Time.deltaTime * ((reltativDistanceToJump - ratioOfContinuesRotation) * 1 / ratioOfContinuesRotation));
+
+        }
+
+        //continious rotation left
+        if (reltativDistanceToJump < -1 + ratioOfContinuesRotation)
+        {
+            this.transform.Rotate(Vector3.up, -10.0f * speedFactorOfContinuesRotation * Time.deltaTime * ((-reltativDistanceToJump - ratioOfContinuesRotation) * 1 / ratioOfContinuesRotation));
+
+        }
+
         // virtual rotation
         if (saturationTimer < 0)
         {
+            // jump rotation right
             if (reltativDistanceToJump == 1)
             { 
                 if(enableAudioFeedback)
@@ -112,6 +132,7 @@ public class RotationJump : MonoBehaviour
                 saturationTimer = maxSaturationTime / multiplyer;
                 
             }
+            // jump rotation left
             else if(reltativDistanceToJump == -1)
             {
                 if (enableAudioFeedback)
