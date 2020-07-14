@@ -18,10 +18,6 @@ public class RotationJump : MonoBehaviour
     [Tooltip("This option enables continues rotation between two jumps.")]
     public bool enableContinuesRotationBetweenJumps;
 
-    [Tooltip("Changes the speed of forward and backward translation.")]
-    [Range(0f, 20f)]
-    public float translationSpeedFactor;
-
     public float angleThreshold;
 
     [Tooltip("Use head roll instead of head yaw.")]
@@ -50,7 +46,7 @@ public class RotationJump : MonoBehaviour
     #endregion
 
     private float _saturationTimer;
-    private SteamVR_Action_Vector2 _axis;
+    
 
     // -1 jump left, 0 center, 1 right
     private float _reltativDistanceToJump;
@@ -61,19 +57,11 @@ public class RotationJump : MonoBehaviour
     {
         _saturationTimer = maxSaturationTime;
         _reltativDistanceToJump = 0;
-        _axis = SteamVR_Input.GetAction<SteamVR_Action_Vector2>("MySet", "Throttle");
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        // virtual translation
-        //////////////////////////////////////
-        this.transform.position += this.transform.forward * _axis.GetAxis(SteamVR_Input_Sources.Any).y * Time.deltaTime * translationSpeedFactor;
-
-        // virtual roation
-        /////////////////////////////////////
         float rotation = GetHeadRotation();
         _reltativDistanceToJump = CalculateRelativeDistanceToJumpRotation(rotation);
 
