@@ -61,6 +61,10 @@ namespace Valve.VR
         
         private static SteamVR_Action_Vector2 p_mySet_Throttle;
         
+        private static SteamVR_Action_Boolean p_mySet_ResetPosition;
+        
+        private static SteamVR_Action_Boolean p_mySet_CalibrateLeaning;
+        
         public static SteamVR_Action_Boolean default_InteractUI
         {
             get
@@ -237,6 +241,22 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean mySet_ResetPosition
+        {
+            get
+            {
+                return SteamVR_Actions.p_mySet_ResetPosition.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
+        public static SteamVR_Action_Boolean mySet_CalibrateLeaning
+        {
+            get
+            {
+                return SteamVR_Actions.p_mySet_CalibrateLeaning.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
@@ -261,7 +281,9 @@ namespace Valve.VR
                     SteamVR_Actions.mixedreality_ExternalCamera,
                     SteamVR_Actions.mySet_Click,
                     SteamVR_Actions.mySet_RightPose,
-                    SteamVR_Actions.mySet_Throttle};
+                    SteamVR_Actions.mySet_Throttle,
+                    SteamVR_Actions.mySet_ResetPosition,
+                    SteamVR_Actions.mySet_CalibrateLeaning};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -283,7 +305,9 @@ namespace Valve.VR
                     SteamVR_Actions.mixedreality_ExternalCamera,
                     SteamVR_Actions.mySet_Click,
                     SteamVR_Actions.mySet_RightPose,
-                    SteamVR_Actions.mySet_Throttle};
+                    SteamVR_Actions.mySet_Throttle,
+                    SteamVR_Actions.mySet_ResetPosition,
+                    SteamVR_Actions.mySet_CalibrateLeaning};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
@@ -303,7 +327,9 @@ namespace Valve.VR
                     SteamVR_Actions.platformer_Jump,
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
-                    SteamVR_Actions.mySet_Click};
+                    SteamVR_Actions.mySet_Click,
+                    SteamVR_Actions.mySet_ResetPosition,
+                    SteamVR_Actions.mySet_CalibrateLeaning};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.buggy_Throttle};
@@ -331,7 +357,9 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Brake,
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.mySet_Click,
-                    SteamVR_Actions.mySet_Throttle};
+                    SteamVR_Actions.mySet_Throttle,
+                    SteamVR_Actions.mySet_ResetPosition,
+                    SteamVR_Actions.mySet_CalibrateLeaning};
         }
         
         private static void PreInitActions()
@@ -358,6 +386,8 @@ namespace Valve.VR
             SteamVR_Actions.p_mySet_Click = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/MySet/in/Click")));
             SteamVR_Actions.p_mySet_RightPose = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/MySet/in/RightPose")));
             SteamVR_Actions.p_mySet_Throttle = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/MySet/in/Throttle")));
+            SteamVR_Actions.p_mySet_ResetPosition = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/MySet/in/ResetPosition")));
+            SteamVR_Actions.p_mySet_CalibrateLeaning = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/MySet/in/CalibrateLeaning")));
         }
     }
 }

@@ -112,10 +112,6 @@ namespace Sigtrap.ImageEffects
             Graphics.Blit(src, dest, _mat);
         }
 
-        void OnDestroy()
-        {
-            Destroy(_mat);
-        }
         #endregion
     }
 }

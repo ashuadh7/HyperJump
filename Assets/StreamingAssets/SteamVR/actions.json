@@ -85,7 +85,7 @@
     {
       "name": "/actions/MySet/in/Click",
       "type": "boolean",
-      "requirement": "mandatory"
+      "requirement": "optional"
     },
     {
       "name": "/actions/MySet/in/RightPose",
@@ -95,6 +95,16 @@
     {
       "name": "/actions/MySet/in/Throttle",
       "type": "vector2",
+      "requirement": "mandatory"
+    },
+    {
+      "name": "/actions/MySet/in/ResetPosition",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/MySet/in/CalibrateLeaning",
+      "type": "boolean",
       "requirement": "mandatory"
     }
   ],

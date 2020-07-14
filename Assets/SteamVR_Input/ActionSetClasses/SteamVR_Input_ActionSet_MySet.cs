@@ -40,5 +40,21 @@ namespace Valve.VR
                 return SteamVR_Actions.mySet_Throttle;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean ResetPosition
+        {
+            get
+            {
+                return SteamVR_Actions.mySet_ResetPosition;
+            }
+        }
+        
+        public virtual SteamVR_Action_Boolean CalibrateLeaning
+        {
+            get
+            {
+                return SteamVR_Actions.mySet_CalibrateLeaning;
+            }
+        }
     }
 }
