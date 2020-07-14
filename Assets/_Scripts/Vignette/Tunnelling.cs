@@ -14,20 +14,20 @@ namespace Sigtrap.ImageEffects
         /// </summary>
         [Range(0f, 1f)]
         [Tooltip("Screen coverage at max angular velocity.\n(1-this) is radius of visible area at max effect (screen space).")]
-        public float maxEffect = 0.75f;
+        public float maxEffect;
 
         /// <summary>
         /// Feather around cut-off as fraction of screen.
         /// </summary>
         [Range(0f, 0.5f)]
         [Tooltip("Feather around cut-off as fraction of screen.")]
-        public float feather = 0.1f;
+        public float feather;
 
         /// <summary>
         /// Smooth out radius over time. 0 for no smoothing.
         /// </summary>
         [Tooltip("Smooth out radius over time. 0 for no smoothing.")]
-        public float smoothTime = 0.15f;
+        public float smoothTime;
         #endregion
 
         #region Smoothing
