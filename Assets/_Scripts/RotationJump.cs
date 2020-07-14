@@ -7,6 +7,8 @@ public class RotationJump : MonoBehaviour
 {
     #region Public Fields
     [Header("Jump Settings")]
+    public bool useControllerOnly;
+
     [Tooltip("Enables audio feedback for jumping.")]
     public bool enableAudioFeedback;
 
@@ -50,11 +52,12 @@ public class RotationJump : MonoBehaviour
 
     // -1 jump left, 0 center, 1 right
     private float _reltativDistanceToJump;
-
+    private SteamVR_Action_Vector2 _axis;
 
     // Start is called before the first frame update
     void Start()
     {
+        _axis = SteamVR_Input.GetAction<SteamVR_Action_Vector2>("MySet", "Throttle");
         _saturationTimer = maxSaturationTime;
         _reltativDistanceToJump = 0;
     }
@@ -62,7 +65,26 @@ public class RotationJump : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float rotation = GetHeadRotation();
+        float rotation = 0f;
+
+        if (!useControllerOnly)
+        {
+            rotation = GetHeadRotation();
+        }
+        else
+        {
+            float axisTemp = _axis.GetAxis(SteamVR_Input_Sources.Any).x;
+            if(axisTemp >= 0)
+            {
+                rotation = axisTemp * 180;
+            }
+            else
+            {
+                rotation = 360 - (-axisTemp * 180);
+            }
+            Debug.Log(rotation);
+        }
+
         _reltativDistanceToJump = CalculateRelativeDistanceToJumpRotation(rotation);
 
         DoContinuesRotation();
