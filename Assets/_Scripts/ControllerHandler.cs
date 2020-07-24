@@ -37,7 +37,7 @@ public class ControllerHandler : MonoBehaviour
     public void Calibrate(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
         Debug.Log("Calibrate leaning position...");
-        GameObject.Find("[CameraRig]").GetComponent<Translation>().CalibrateLeaningKS();
+        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().CalibrateLeaningKS();
     }
 
     public void Reset(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)

@@ -58,8 +58,5 @@ public class Translation : MonoBehaviour
     }
 
 
-    public void CalibrateLeaningKS()
-    {
-        _leaningRef = GameObject.Find("Camera").transform.localPosition;
-    }
+    
 }
