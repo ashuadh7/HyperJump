@@ -15,6 +15,10 @@ public class LocomotionControl : MonoBehaviour
     [Range(0f, 0.9f)]
     public float _leaningSidewayDeadzone;
 
+    [Tooltip("Head yaw deadzone in degree.")]
+    [Range(0f, 180f)]
+    public float _yawDeadzone;
+
     [Tooltip("Define the distance from center which results in maximum axis deviation.")]
     public float _leaningForwardMaximumCM;
 
@@ -57,6 +61,19 @@ public class LocomotionControl : MonoBehaviour
             NormalizeTranslationalInputsToAxis();
             ApplyDeadzonesToAxis();
         } 
+    }
+
+    // TODO this is not nice, make it an axis e.g.
+    public float GetYaw()
+    {
+        if (Mathf.Abs(_headYaw) > _yawDeadzone)
+        {
+            return _headYaw;
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     public Vector2 GetLeaningAxis()

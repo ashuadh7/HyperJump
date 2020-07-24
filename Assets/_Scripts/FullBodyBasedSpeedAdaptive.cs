@@ -14,7 +14,9 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Range(0f, 1f)]
     public float _velocityThesholdForInterfaceSwitch;
 
-    public float _continuesRotationSpeedFactor;
+    public float _movingRotationSpeedFactor;
+
+    public float _standingRotationSpeedFactor;
     #endregion
 
 
@@ -41,12 +43,20 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // when fast enough leaning controlles rotation
         if (GetComponent<LocomotionControl>().GetLeaningAxis().y >= _velocityThesholdForInterfaceSwitch)
         {
-            float rotationSpeedFactor = _continuesRotationSpeedFactor * (1.0f - GetComponent<LocomotionControl>().GetLeaningAxis().y);
+            float rotationSpeedFactor = _movingRotationSpeedFactor * (1.0f - GetComponent<LocomotionControl>().GetLeaningAxis().y);
 
             this.transform.RotateAround(
                 GameObject.Find("Camera").transform.position, 
                 Vector3.up,
                 rotationSpeedFactor * Time.deltaTime * GetComponent<LocomotionControl>().GetLeaningAxis().x
+            );
+        }
+        else
+        {
+            this.transform.RotateAround(
+                GameObject.Find("Camera").transform.position,
+                Vector3.up,
+                _standingRotationSpeedFactor * Time.deltaTime * GetComponent<LocomotionControl>().GetYaw()
             );
         }
     }
