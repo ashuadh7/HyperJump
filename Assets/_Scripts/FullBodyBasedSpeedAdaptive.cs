@@ -17,6 +17,13 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     public float _movingRotationSpeedFactor;
 
     public float _standingRotationSpeedFactor;
+
+    public bool _enableRotationalJumping;
+
+    // the jumping threshold is given by rotational degree per second, this should make the threshold independent of the method used but
+    // (be carefull) dependet of the transfer function
+    public float _rotationalJumpingThresholdDegreePerSecond;
+
     #endregion
 
 
@@ -30,6 +37,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     {
         this.transform.position += this.transform.forward * GetComponent<LocomotionControl>().GetLeaningAxis().y * Time.deltaTime * _translationSpeedFactor;
 
+        // TODO smooth transition into this
         // when slow enough leaning controlles strafing
         if (GetComponent<LocomotionControl>().GetLeaningAxis().y < _velocityThesholdForInterfaceSwitch)
         {
@@ -40,24 +48,27 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void Rotate()
     {
+        float rotation = Time.deltaTime;
+
+        // TODO smooth transitions between the two modi
         // when fast enough leaning controlles rotation
         if (GetComponent<LocomotionControl>().GetLeaningAxis().y >= _velocityThesholdForInterfaceSwitch)
         {
-            float rotationSpeedFactor = _movingRotationSpeedFactor * (1.0f - GetComponent<LocomotionControl>().GetLeaningAxis().y);
+            // leaning faster to the sides results in faster yaw rotation
+            rotation *= _movingRotationSpeedFactor * GetComponent<LocomotionControl>().GetLeaningAxis().x;
+            
+            // for faster tavel speeds rotation speed is increased;
+            rotation *= (1.0f - GetComponent<LocomotionControl>().GetLeaningAxis().y);
 
-            this.transform.RotateAround(
-                GameObject.Find("Camera").transform.position, 
-                Vector3.up,
-                rotationSpeedFactor * Time.deltaTime * GetComponent<LocomotionControl>().GetLeaningAxis().x
-            );
+            
         }
+        // when slower it is the head yaw only
         else
         {
-            this.transform.RotateAround(
-                GameObject.Find("Camera").transform.position,
-                Vector3.up,
-                _standingRotationSpeedFactor * Time.deltaTime * GetComponent<LocomotionControl>().GetYaw()
-            );
+            rotation *= _standingRotationSpeedFactor * GetComponent<LocomotionControl>().GetYaw();
         }
+
+        // finally aplly the rotation
+        this.transform.RotateAround(GameObject.Find("Camera").transform.position, Vector3.up, rotation);
     }
 }
