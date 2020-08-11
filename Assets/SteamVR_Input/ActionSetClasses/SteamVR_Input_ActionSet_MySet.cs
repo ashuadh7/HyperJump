@@ -56,5 +56,13 @@ namespace Valve.VR
                 return SteamVR_Actions.mySet_CalibrateLeaning;
             }
         }
+        
+        public virtual SteamVR_Action_Boolean Break
+        {
+            get
+            {
+                return SteamVR_Actions.mySet_Break;
+            }
+        }
     }
 }

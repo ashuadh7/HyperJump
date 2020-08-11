@@ -54,7 +54,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     void Update()
     {
         Rotate();
-        Translate();
+        if(!GetComponent<LocomotionControl>().isBreaked())
+        {
+            Translate();
+        }    
     }
 
     private void Translate()

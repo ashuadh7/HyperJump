@@ -106,6 +106,11 @@
       "name": "/actions/MySet/in/CalibrateLeaning",
       "type": "boolean",
       "requirement": "mandatory"
+    },
+    {
+      "name": "/actions/MySet/in/Break",
+      "type": "boolean",
+      "requirement": "optional"
     }
   ],
   "action_sets": [

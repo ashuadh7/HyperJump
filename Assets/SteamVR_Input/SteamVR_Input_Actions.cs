@@ -65,6 +65,8 @@ namespace Valve.VR
         
         private static SteamVR_Action_Boolean p_mySet_CalibrateLeaning;
         
+        private static SteamVR_Action_Boolean p_mySet_Break;
+        
         public static SteamVR_Action_Boolean default_InteractUI
         {
             get
@@ -257,6 +259,14 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Boolean mySet_Break
+        {
+            get
+            {
+                return SteamVR_Actions.p_mySet_Break.GetCopy<SteamVR_Action_Boolean>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
@@ -283,7 +293,8 @@ namespace Valve.VR
                     SteamVR_Actions.mySet_RightPose,
                     SteamVR_Actions.mySet_Throttle,
                     SteamVR_Actions.mySet_ResetPosition,
-                    SteamVR_Actions.mySet_CalibrateLeaning};
+                    SteamVR_Actions.mySet_CalibrateLeaning,
+                    SteamVR_Actions.mySet_Break};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -307,7 +318,8 @@ namespace Valve.VR
                     SteamVR_Actions.mySet_RightPose,
                     SteamVR_Actions.mySet_Throttle,
                     SteamVR_Actions.mySet_ResetPosition,
-                    SteamVR_Actions.mySet_CalibrateLeaning};
+                    SteamVR_Actions.mySet_CalibrateLeaning,
+                    SteamVR_Actions.mySet_Break};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
@@ -329,7 +341,8 @@ namespace Valve.VR
                     SteamVR_Actions.buggy_Reset,
                     SteamVR_Actions.mySet_Click,
                     SteamVR_Actions.mySet_ResetPosition,
-                    SteamVR_Actions.mySet_CalibrateLeaning};
+                    SteamVR_Actions.mySet_CalibrateLeaning,
+                    SteamVR_Actions.mySet_Break};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze,
                     SteamVR_Actions.buggy_Throttle};
@@ -359,7 +372,8 @@ namespace Valve.VR
                     SteamVR_Actions.mySet_Click,
                     SteamVR_Actions.mySet_Throttle,
                     SteamVR_Actions.mySet_ResetPosition,
-                    SteamVR_Actions.mySet_CalibrateLeaning};
+                    SteamVR_Actions.mySet_CalibrateLeaning,
+                    SteamVR_Actions.mySet_Break};
         }
         
         private static void PreInitActions()
@@ -388,6 +402,7 @@ namespace Valve.VR
             SteamVR_Actions.p_mySet_Throttle = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/MySet/in/Throttle")));
             SteamVR_Actions.p_mySet_ResetPosition = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/MySet/in/ResetPosition")));
             SteamVR_Actions.p_mySet_CalibrateLeaning = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/MySet/in/CalibrateLeaning")));
+            SteamVR_Actions.p_mySet_Break = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/MySet/in/Break")));
         }
     }
 }

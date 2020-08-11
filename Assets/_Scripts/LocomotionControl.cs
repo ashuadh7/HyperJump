@@ -50,6 +50,8 @@ public class LocomotionControl : MonoBehaviour
 
     private Vector2 _leaningAxis = Vector2.zero;
 
+    private bool _break;
+
 
     void Start()
     {
@@ -57,6 +59,7 @@ public class LocomotionControl : MonoBehaviour
         _sidwayLeaningCM = 0;
         _headYaw = 0;
         _headRoll = 0;
+        _break = false;
         _headYawAxis = 0;
     }
 
@@ -164,5 +167,15 @@ public class LocomotionControl : MonoBehaviour
         }
         _headRoll -= _leaningRefOrientation.z;
         _headRoll *= -1;
+    }
+
+    public void UpdateBreak(bool val)
+    {
+        _break = val;
+    }
+
+    public bool isBreaked()
+    {
+        return _break;
     }
 }

@@ -5,32 +5,34 @@ using Valve.VR;
 
 public class ControllerHandler : MonoBehaviour
 {
-    public SteamVR_Action_Boolean SetSphere;
-    public SteamVR_Action_Boolean CalibrateLeaning;
-    public SteamVR_Action_Boolean ResetPosition;
+    public SteamVR_Action_Boolean _setSphere;
+    public SteamVR_Action_Boolean _calibrateLeaning;
+    public SteamVR_Action_Boolean _resetPosition;
+    public SteamVR_Action_Boolean _break;
 
-    private SteamVR_Action_Pose pose;
-    private Collider isColliding;
+    private SteamVR_Action_Pose _pose;
+    private Collider _isColliding;
 
     void Start()
     {
-        SetSphere.AddOnStateUpListener(TriggerDown, SteamVR_Input_Sources.Any);
-        CalibrateLeaning.AddOnStateUpListener(Calibrate, SteamVR_Input_Sources.Any);
-        ResetPosition.AddOnStateUpListener(Reset, SteamVR_Input_Sources.Any);
-        pose = SteamVR_Input.GetAction<SteamVR_Action_Pose>("MySet", "RightPose");
-        isColliding = null;
+        _setSphere.AddOnStateDownListener(TriggerDown, SteamVR_Input_Sources.Any);
+        _calibrateLeaning.AddOnStateDownListener(Calibrate, SteamVR_Input_Sources.Any);
+        _resetPosition.AddOnStateDownListener(Reset, SteamVR_Input_Sources.Any);
+        _break.AddOnUpdateListener(Break, SteamVR_Input_Sources.Any);
+        _pose = SteamVR_Input.GetAction<SteamVR_Action_Pose>("MySet", "RightPose");
+        _isColliding = null;
     }
 
     public void TriggerDown(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        if (isColliding == null)
+        if (_isColliding == null)
         {
-            Vector3 position = pose.GetLocalPosition(fromSource);
+            Vector3 position = _pose.GetLocalPosition(fromSource);
             CoucheronManager.Instance.AddSphere(position);
         }   
         else
         {
-            CoucheronManager.Instance.HandleTriggerOnCollision(isColliding);
+            CoucheronManager.Instance.HandleTriggerOnCollision(_isColliding);
         }
     }
 
@@ -46,14 +48,20 @@ public class ControllerHandler : MonoBehaviour
         GameObject.Find("[CameraRig]").transform.SetPositionAndRotation(new Vector3(-45, 9.3f, 27), Quaternion.identity);
     }
 
+
+    public void Break(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState)
+    {
+        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().UpdateBreak(newState);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        isColliding = other;
+        _isColliding = other;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        isColliding = null;
+        _isColliding = null;
         
     }
 }
