@@ -49,8 +49,15 @@ public class LocomotionControl : MonoBehaviour
     private float _headRoll;
 
     private Vector2 _leaningAxis = Vector2.zero;
-
     private bool _break;
+
+    // TODO mabye move the whole procedure to its own class
+    // center of rotation calibration
+    private bool _calibrationRecordingEndabled;
+    private List<Vector3> _hmdPositions;
+    private List<Vector3> _hmdForwards;
+    private float _samplingFrequence = 0.1f;
+    private float _samplingTimer;
 
 
     void Start()
@@ -61,11 +68,22 @@ public class LocomotionControl : MonoBehaviour
         _headRoll = 0;
         _break = false;
         _headYawAxis = 0;
+        _calibrationRecordingEndabled = false;    
     }
 
     void Update()
     {
-        if (_leaningRefPosition != Vector3.zero)
+        if(_calibrationRecordingEndabled)
+        {
+            _samplingTimer -= Time.deltaTime;
+            if(_samplingTimer < 0)
+            {
+                _hmdPositions.Add(GameObject.Find("Camera").transform.localPosition);
+                _hmdForwards.Add(GameObject.Find("Camera").transform.forward);
+                _samplingTimer = _samplingFrequence;
+            }
+        }        
+        else if (_leaningRefPosition != Vector3.zero)
         {
             UpdateInputs();
             NormalizeTranslationalInputsToAxis();
@@ -146,6 +164,43 @@ public class LocomotionControl : MonoBehaviour
             _leaningRefOrientation.z -= 360;
         }
     }
+
+    public void StartCenterofRotationCalibration()
+    {
+        _calibrationRecordingEndabled = true;
+        _samplingTimer = _samplingFrequence;
+        _hmdPositions = new List<Vector3>();
+        _hmdForwards = new List<Vector3>();  
+    }
+
+    public void FinishCenterofRotationCalibration()
+    {
+        _calibrationRecordingEndabled = false;
+        int firstSample = _hmdPositions.Count / 4;
+        int secondSample = firstSample * 3;
+
+        Plane saggitalPlane = new Plane();
+        saggitalPlane.SetNormalAndPosition(GameObject.Find("Camera").transform.localPosition, GameObject.Find("Camera").transform.right);
+
+        // docu:
+        // If the ray is pointing in the opposite direction than the plane, function returns false/ and sets enter to the distance along the ray (negative value).
+        // TODO not working
+        float distanceToPlaceFirstSample;
+        saggitalPlane.Raycast(new Ray(_hmdPositions[firstSample], -_hmdForwards[firstSample]), out distanceToPlaceFirstSample);
+        Vector3 firstTarget = _hmdPositions[firstSample] + distanceToPlaceFirstSample * _hmdForwards[firstSample];
+      
+        float distanceToPlaceSecondSample;
+        saggitalPlane.Raycast(new Ray(_hmdPositions[secondSample], -_hmdForwards[secondSample]), out distanceToPlaceSecondSample);
+        Vector3 secondTarget = _hmdPositions[secondSample] - distanceToPlaceSecondSample * _hmdForwards[secondSample];
+
+        Debug.Log(firstTarget);
+        Debug.Log(secondTarget);
+
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        Instantiate(sphere, GameObject.Find("Camera").transform.position + firstTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+        Instantiate(sphere, GameObject.Find("Camera").transform.position + secondTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+    }
+
 
     private void UpdateInputs()
     {

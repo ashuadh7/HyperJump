@@ -6,7 +6,7 @@ using Valve.VR;
 public class ControllerHandler : MonoBehaviour
 {
     public SteamVR_Action_Boolean _setSphere;
-    public SteamVR_Action_Boolean _calibrateLeaning;
+    public SteamVR_Action_Boolean _calibrattion;
     public SteamVR_Action_Boolean _resetPosition;
     public SteamVR_Action_Boolean _break;
 
@@ -16,7 +16,8 @@ public class ControllerHandler : MonoBehaviour
     void Start()
     {
         _setSphere.AddOnStateDownListener(TriggerDown, SteamVR_Input_Sources.Any);
-        _calibrateLeaning.AddOnStateDownListener(Calibrate, SteamVR_Input_Sources.Any);
+        _calibrattion.AddOnStateDownListener(StartCalibration, SteamVR_Input_Sources.Any);
+        _calibrattion.AddOnStateUpListener(FinishCalibration, SteamVR_Input_Sources.Any);
         _resetPosition.AddOnStateDownListener(Reset, SteamVR_Input_Sources.Any);
         _break.AddOnUpdateListener(Break, SteamVR_Input_Sources.Any);
         _pose = SteamVR_Input.GetAction<SteamVR_Action_Pose>("MySet", "RightPose");
@@ -36,10 +37,21 @@ public class ControllerHandler : MonoBehaviour
         }
     }
 
-    public void Calibrate(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
+    // the calibration procedure is as follows:
+    // 1) press the buttion an look to the left or right only using head yaw and try to be stationary else
+    // 2) keep the buttion pressed and look to the other side
+    // 3) keep the buttion pressed, look forward in a comfortable leaning position and release
+    public void StartCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        Debug.Log("Calibrate leaning position...");
+        Debug.Log("Started calibration...");
+        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().StartCenterofRotationCalibration();
+    }
+
+    public void FinishCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
+    {
+        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().FinishCenterofRotationCalibration();
         GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().CalibrateLeaningKS();
+        Debug.Log("Finished calibration...");
     }
 
     public void Reset(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
