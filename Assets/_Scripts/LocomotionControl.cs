@@ -15,9 +15,13 @@ public class LocomotionControl : MonoBehaviour
     [Range(0f, 0.9f)]
     public float _leaningSidewayDeadzone;
 
-    [Tooltip("Head yaw deadzone in degree.")]
+    [Tooltip("Head yaw deadzone in percent.")]
+    [Range(0f, 0.9f)]
+    public float _headYawDeadzone;
+
+    [Tooltip("Define the head yaw angel resulting in maximum axis deviation.")]
     [Range(0f, 180f)]
-    public float _yawDeadzone;
+    public float _headYawMaxAngle;
 
     [Tooltip("Define the distance from center which results in maximum axis deviation.")]
     public float _leaningForwardMaximumCM;
@@ -39,6 +43,8 @@ public class LocomotionControl : MonoBehaviour
     // ranging between -180 (left) and +180
     private float _headYaw;
 
+    private float _headYawAxis;
+
     // ranging between -180 (left) and +180
     private float _headRoll;
 
@@ -51,6 +57,7 @@ public class LocomotionControl : MonoBehaviour
         _sidwayLeaningCM = 0;
         _headYaw = 0;
         _headRoll = 0;
+        _headYawAxis = 0;
     }
 
     void Update()
@@ -63,20 +70,17 @@ public class LocomotionControl : MonoBehaviour
         } 
     }
 
-    // TODO this is not nice, make it an axis e.g.
-    public float GetYaw()
+    public float GetHeadYaw()
     {
-        if (Mathf.Abs(_headYaw) > _yawDeadzone)
-        {
             return _headYaw;
-        }
-        else
-        {
-            return 0;
-        }
     }
 
-    public Vector2 GetLeaningAxis()
+    public float GetHeadYawAxis()
+    {
+        return _headYawAxis;
+    }
+
+    public Vector2 Get2DLeaningAxis()
     {
         return _leaningAxis;
     }
@@ -85,6 +89,7 @@ public class LocomotionControl : MonoBehaviour
     {
         _leaningAxis.y = Mathf.Clamp(_forwadLeaningCM / _leaningForwardMaximumCM, -1, 1);
         _leaningAxis.x = Mathf.Clamp(_sidwayLeaningCM / _leaningSidewayMaximumCM, -1, 1);
+        _headYawAxis = Mathf.Clamp(_headYaw / _headYawMaxAngle, -1, 1);
     }
 
     private void ApplyDeadzonesToAxis()
@@ -106,6 +111,15 @@ public class LocomotionControl : MonoBehaviour
         else
         {
             _leaningAxis.x = (_leaningAxis.x - _leaningSidewayDeadzone * Mathf.Sign(_leaningAxis.x)) / (1.0f - _leaningSidewayDeadzone);
+        }
+
+        if (_headYawAxis < 0 && _headYawAxis > -_headYawDeadzone || _headYawAxis > 0 && _headYawAxis < _headYawDeadzone)
+        {
+            _headYawAxis = 0;
+        }
+        else
+        {
+            _headYawAxis = (_headYawAxis - _headYawDeadzone * Mathf.Sign(_headYawAxis)) / (1.0f - _headYawDeadzone);
         }
     }
 

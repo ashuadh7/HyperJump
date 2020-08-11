@@ -35,40 +35,45 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void Translate()
     {
-        this.transform.position += this.transform.forward * GetComponent<LocomotionControl>().GetLeaningAxis().y * Time.deltaTime * _translationSpeedFactor;
+        this.transform.position += this.transform.forward * GetComponent<LocomotionControl>().Get2DLeaningAxis().y * Time.deltaTime * _translationSpeedFactor;
 
         // TODO smooth transition into this
         // when slow enough leaning controlles strafing
-        if (GetComponent<LocomotionControl>().GetLeaningAxis().y < _velocityThesholdForInterfaceSwitch)
+        if (GetComponent<LocomotionControl>().Get2DLeaningAxis().y < _velocityThesholdForInterfaceSwitch)
         {
-            this.transform.position += this.transform.right * GetComponent<LocomotionControl>().GetLeaningAxis().x * Time.deltaTime * _translationSpeedFactor;
+            this.transform.position += this.transform.right * GetComponent<LocomotionControl>().Get2DLeaningAxis().x * Time.deltaTime * _translationSpeedFactor;
         }
 
     }
 
     private void Rotate()
     {
-        float rotation = Time.deltaTime;
+        float angle = Time.deltaTime;
 
         // TODO smooth transitions between the two modi
         // when fast enough leaning controlles rotation
-        if (GetComponent<LocomotionControl>().GetLeaningAxis().y >= _velocityThesholdForInterfaceSwitch)
+        if (GetComponent<LocomotionControl>().Get2DLeaningAxis().y >= _velocityThesholdForInterfaceSwitch)
         {
             // leaning faster to the sides results in faster yaw rotation
-            rotation *= _movingRotationSpeedFactor * GetComponent<LocomotionControl>().GetLeaningAxis().x;
+            angle *= _movingRotationSpeedFactor * GetComponent<LocomotionControl>().Get2DLeaningAxis().x;
             
             // for faster tavel speeds rotation speed is increased;
-            rotation *= (1.0f - GetComponent<LocomotionControl>().GetLeaningAxis().y);
+            angle *= (1.0f - GetComponent<LocomotionControl>().Get2DLeaningAxis().y);
 
             
         }
         // when slower it is the head yaw only
         else
         {
-            rotation *= _standingRotationSpeedFactor * GetComponent<LocomotionControl>().GetYaw();
+            angle *= _standingRotationSpeedFactor * GetComponent<LocomotionControl>().GetHeadYawAxis();
         }
 
+        float rotationSpeed = angle / Time.deltaTime;
+        Debug.Log(rotationSpeed);
+
         // finally aplly the rotation
-        this.transform.RotateAround(GameObject.Find("Camera").transform.position, Vector3.up, rotation);
+        // TODO use the calculated head rotation center here
+        this.transform.RotateAround(GameObject.Find("Camera").transform.position, Vector3.up, angle);
+        
     }
 }
