@@ -17,6 +17,9 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Tooltip("Gives the maximum rotational speed in degree per second.")]
     public float _maxRotationSpeed;
 
+    [Tooltip("When this mode is enabled the rotational speed is reduced with increasing travel speed.")]
+    public bool _enableMotorcycleMode;
+
     [Header("Rotational Jumping")]
     public bool _enableRotationalJumping;
 
@@ -80,9 +83,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             angle *= GetComponent<LocomotionControl>().Get2DLeaningAxis().x;
             
             // for faster tavel speeds rotation speed is increased;
-            angle *= (1.0f - GetComponent<LocomotionControl>().Get2DLeaningAxis().y);
-
-            
+            if(_enableMotorcycleMode)
+            {
+                angle *= (1.0f - GetComponent<LocomotionControl>().Get2DLeaningAxis().y);
+            }  
         }
         // when slower it is the head yaw only
         else
