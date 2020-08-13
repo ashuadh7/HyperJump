@@ -78,7 +78,7 @@ public class LocomotionControl : MonoBehaviour
             _samplingTimer -= Time.deltaTime;
             if(_samplingTimer < 0)
             {
-                _hmdPositions.Add(GameObject.Find("Camera").transform.localPosition);
+                _hmdPositions.Add(GameObject.Find("Camera").transform.position);
                 _hmdForwards.Add(GameObject.Find("Camera").transform.forward);
                 _samplingTimer = _samplingFrequence;
             }
@@ -179,26 +179,41 @@ public class LocomotionControl : MonoBehaviour
         int firstSample = _hmdPositions.Count / 4;
         int secondSample = firstSample * 3;
 
+        // constuct a saggital plane at the head set's current/final position
         Plane saggitalPlane = new Plane();
-        saggitalPlane.SetNormalAndPosition(GameObject.Find("Camera").transform.localPosition, GameObject.Find("Camera").transform.right);
+        saggitalPlane.SetNormalAndPosition(GameObject.Find("Camera").transform.right, GameObject.Find("Camera").transform.position);
 
-        // docu:
-        // If the ray is pointing in the opposite direction than the plane, function returns false/ and sets enter to the distance along the ray (negative value).
-        // TODO not working
-        float distanceToPlaceFirstSample;
-        saggitalPlane.Raycast(new Ray(_hmdPositions[firstSample], -_hmdForwards[firstSample]), out distanceToPlaceFirstSample);
-        Vector3 firstTarget = _hmdPositions[firstSample] + distanceToPlaceFirstSample * _hmdForwards[firstSample];
+        // shoot a ray from two positions on the calibration arc to the plane the results is the center of (yaw) rotation
+        // Note: Only one sample would be nessesary.
+        float distanceToPlane;
+        Ray ray = new Ray(_hmdPositions[firstSample], -_hmdForwards[firstSample]);
+        saggitalPlane.Raycast(ray, out distanceToPlane);
+        Vector3 firstTarget = ray.GetPoint(distanceToPlane);
       
-        float distanceToPlaceSecondSample;
-        saggitalPlane.Raycast(new Ray(_hmdPositions[secondSample], -_hmdForwards[secondSample]), out distanceToPlaceSecondSample);
-        Vector3 secondTarget = _hmdPositions[secondSample] - distanceToPlaceSecondSample * _hmdForwards[secondSample];
+        ray = new Ray(_hmdPositions[secondSample], -_hmdForwards[secondSample]);
+        saggitalPlane.Raycast(ray, out distanceToPlane);
+        Vector3 secondTarget = ray.GetPoint(distanceToPlane);
 
+        Vector3 centerOfYawRotationGlobal = (firstTarget + secondTarget) / 2f;
+        GameObject centerOfYawRotation = new GameObject("CenterOfYawRotation");
+
+        // TODO
+        // 1. use this center of rotation for yaw rotations
+        // 2. use it to differ between looking to the side and moving to the side
+        Instantiate(centerOfYawRotation, centerOfYawRotationGlobal, Quaternion.identity, GameObject.Find("Camera").transform);
+
+        Debug.Log("Head's center of yaw rotation distance to headset: " + (GameObject.Find("Camera").transform.position - centerOfYawRotationGlobal).magnitude);
+        
+        // Debugging Visualisation 
+        /*
         Debug.Log(firstTarget);
         Debug.Log(secondTarget);
 
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        Instantiate(sphere, GameObject.Find("Camera").transform.position + firstTarget, Quaternion.identity, GameObject.Find("Camera").transform);
-        Instantiate(sphere, GameObject.Find("Camera").transform.position + secondTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        Instantiate(sphere, firstTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+        Instantiate(sphere, secondTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+        Instantiate(sphere, GameObject.Find("Camera").transform.position, Quaternion.identity, GameObject.Find("Camera").transform);*/
     }
 
 
