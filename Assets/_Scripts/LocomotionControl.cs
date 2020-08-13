@@ -49,8 +49,15 @@ public class LocomotionControl : MonoBehaviour
     private float _headRoll;
 
     private Vector2 _leaningAxis = Vector2.zero;
-
     private bool _break;
+
+    // TODO mabye move the whole procedure to its own class
+    // center of rotation calibration
+    private bool _calibrationRecordingEndabled;
+    private List<Vector3> _hmdPositions;
+    private List<Vector3> _hmdForwards;
+    private float _samplingFrequence = 0.1f;
+    private float _samplingTimer;
 
 
     void Start()
@@ -61,11 +68,22 @@ public class LocomotionControl : MonoBehaviour
         _headRoll = 0;
         _break = false;
         _headYawAxis = 0;
+        _calibrationRecordingEndabled = false;    
     }
 
     void Update()
     {
-        if (_leaningRefPosition != Vector3.zero)
+        if(_calibrationRecordingEndabled)
+        {
+            _samplingTimer -= Time.deltaTime;
+            if(_samplingTimer < 0)
+            {
+                _hmdPositions.Add(GameObject.Find("Camera").transform.position);
+                _hmdForwards.Add(GameObject.Find("Camera").transform.forward);
+                _samplingTimer = _samplingFrequence;
+            }
+        }        
+        else if (_leaningRefPosition != Vector3.zero)
         {
             UpdateInputs();
             NormalizeTranslationalInputsToAxis();
@@ -146,6 +164,58 @@ public class LocomotionControl : MonoBehaviour
             _leaningRefOrientation.z -= 360;
         }
     }
+
+    public void StartCenterofRotationCalibration()
+    {
+        _calibrationRecordingEndabled = true;
+        _samplingTimer = _samplingFrequence;
+        _hmdPositions = new List<Vector3>();
+        _hmdForwards = new List<Vector3>();  
+    }
+
+    public void FinishCenterofRotationCalibration()
+    {
+        _calibrationRecordingEndabled = false;
+        int firstSample = _hmdPositions.Count / 4;
+        int secondSample = firstSample * 3;
+
+        // constuct a saggital plane at the head set's current/final position
+        Plane saggitalPlane = new Plane();
+        saggitalPlane.SetNormalAndPosition(GameObject.Find("Camera").transform.right, GameObject.Find("Camera").transform.position);
+
+        // shoot a ray from two positions on the calibration arc to the plane the results is the center of (yaw) rotation
+        // Note: Only one sample would be nessesary.
+        float distanceToPlane;
+        Ray ray = new Ray(_hmdPositions[firstSample], -_hmdForwards[firstSample]);
+        saggitalPlane.Raycast(ray, out distanceToPlane);
+        Vector3 firstTarget = ray.GetPoint(distanceToPlane);
+      
+        ray = new Ray(_hmdPositions[secondSample], -_hmdForwards[secondSample]);
+        saggitalPlane.Raycast(ray, out distanceToPlane);
+        Vector3 secondTarget = ray.GetPoint(distanceToPlane);
+
+        Vector3 centerOfYawRotationGlobal = (firstTarget + secondTarget) / 2f;
+        GameObject centerOfYawRotation = new GameObject("CenterOfYawRotation");
+
+        // TODO
+        // 1. use this center of rotation for yaw rotations
+        // 2. use it to differ between looking to the side and moving to the side
+        Instantiate(centerOfYawRotation, centerOfYawRotationGlobal, Quaternion.identity, GameObject.Find("Camera").transform);
+
+        Debug.Log("Head's center of yaw rotation distance to headset: " + (GameObject.Find("Camera").transform.position - centerOfYawRotationGlobal).magnitude);
+        
+        // Debugging Visualisation 
+        /*
+        Debug.Log(firstTarget);
+        Debug.Log(secondTarget);
+
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        Instantiate(sphere, firstTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+        Instantiate(sphere, secondTarget, Quaternion.identity, GameObject.Find("Camera").transform);
+        Instantiate(sphere, GameObject.Find("Camera").transform.position, Quaternion.identity, GameObject.Find("Camera").transform);*/
+    }
+
 
     private void UpdateInputs()
     {
