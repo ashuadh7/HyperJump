@@ -150,6 +150,11 @@ public class LocomotionControl : MonoBehaviour
         return _headJoint;
     }
 
+    public float GetRelativDistanceToJump()
+    {
+        return this.GetComponent<FullBodyBasedSpeedAdaptive>().GetRelativeDistanceToJump();
+    }
+
     public void CalibrateLeaningKS()
     {
         _leaningRefPosition = this.transform.InverseTransformPoint(GetComponent<LocomotionControl>().GetHeadJoint().transform.position);

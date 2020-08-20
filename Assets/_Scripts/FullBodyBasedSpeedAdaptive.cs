@@ -45,6 +45,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     #endregion
 
     private float _jumpSaturationTimer;
+    private float _relDistanceToJump = 1.0f;
 
     private void Start()
     {
@@ -61,6 +62,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         {
             Translate();
         }    
+    }
+
+    public float GetRelativeDistanceToJump()
+    {
+        return _relDistanceToJump;
     }
 
     private void Translate()
@@ -80,7 +86,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     {
         _jumpSaturationTimer -= Time.deltaTime;
         float angle = _maxRotationSpeed * Time.deltaTime;
-
+        
         // TODO smooth transitions between the two modi
         // when fast enough leaning controlles rotation
         if (GetComponent<LocomotionControl>().Get2DLeaningAxis().y >= _velocityThesholdForInterfaceSwitch)
@@ -102,8 +108,16 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
         float signedAnglePerSecond = angle / Time.deltaTime;
 
+        // calculate distance to jump for the feedback
+        _relDistanceToJump = Mathf.Clamp(Mathf.Abs(signedAnglePerSecond) / _rotationalJumpingThresholdDegreePerSecond, 0, 1);
+        if(!_enableRotationalJumping)
+        {
+            // allways max thus the vignette is not there in this case, such as in case of a jump
+            _relDistanceToJump = 1.0f;
+        }
+
         // finally aplly the rotation
-        if(_enableRotationalJumping &&
+        if (_enableRotationalJumping &&
            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
            _jumpSaturationTimer < 0)
         {
@@ -119,7 +133,6 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
         else
         {
-            // TODO use the calculated head rotation center here
             this.transform.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, angle);
         }    
     }

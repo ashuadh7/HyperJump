@@ -66,8 +66,7 @@ namespace Sigtrap.ImageEffects
         void Update()
         {
             // TODO
-            //float av = transform.GetComponentInParent<RotationJump>().GetRelativDistanceToJump() * maxEffect;
-            float av = 0;
+            float av = (1 - transform.GetComponentInParent<LocomotionControl>().GetRelativDistanceToJump()) * maxEffect;
             _mat.SetFloat(_propAV, av);
             _mat.SetFloat(_propFeather, feather);
         }
