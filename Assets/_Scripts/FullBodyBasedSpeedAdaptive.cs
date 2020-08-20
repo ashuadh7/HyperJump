@@ -51,7 +51,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         _jumpSaturationTimer = _maxSaturationTime;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if(GetComponent<LocomotionControl>().GetHeadJoint() != null)
         {
