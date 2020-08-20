@@ -53,7 +53,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     void Update()
     {
-        Rotate();
+        if(GetComponent<LocomotionControl>().GetHeadJoint() != null)
+        {
+            Rotate();
+        } 
         if(!GetComponent<LocomotionControl>().isBreaked())
         {
             Translate();
@@ -104,7 +107,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
            _jumpSaturationTimer < 0)
         {
-            this.transform.RotateAround(GameObject.Find("Camera").transform.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
+            this.transform.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
 
             // reset saturation time
             float timeModifyer = 1;
@@ -117,7 +120,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         else
         {
             // TODO use the calculated head rotation center here
-            this.transform.RotateAround(GameObject.Find("Camera").transform.position, Vector3.up, angle);
+            this.transform.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, angle);
         }    
     }
 }

@@ -53,6 +53,7 @@ public class LocomotionControl : MonoBehaviour
 
     // TODO mabye move the whole procedure to its own class
     // center of rotation calibration
+    GameObject _headJoint = null;
     private bool _calibrationRecordingEndabled;
     private List<Vector3> _hmdPositions;
     private List<Vector3> _hmdForwards;
@@ -144,6 +145,11 @@ public class LocomotionControl : MonoBehaviour
         }
     }
 
+    public GameObject GetHeadJoint()
+    {
+        return _headJoint;
+    }
+
     public void CalibrateLeaningKS()
     {
         _leaningRefPosition = GameObject.Find("Camera").transform.localPosition;
@@ -200,7 +206,7 @@ public class LocomotionControl : MonoBehaviour
         // TODO
         // 1. use this center of rotation for yaw rotations
         // 2. use it to differ between looking to the side and moving to the side
-        Instantiate(centerOfYawRotation, centerOfYawRotationGlobal, Quaternion.identity, GameObject.Find("Camera").transform);
+        _headJoint = Instantiate(centerOfYawRotation, centerOfYawRotationGlobal, Quaternion.identity, GameObject.Find("Camera").transform);
 
         Debug.Log("Head's center of yaw rotation distance to headset: " + (GameObject.Find("Camera").transform.position - centerOfYawRotationGlobal).magnitude);
         
