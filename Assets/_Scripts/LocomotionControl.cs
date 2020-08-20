@@ -152,7 +152,7 @@ public class LocomotionControl : MonoBehaviour
 
     public void CalibrateLeaningKS()
     {
-        _leaningRefPosition = GameObject.Find("Camera").transform.localPosition;
+        _leaningRefPosition = this.transform.InverseTransformPoint(GetComponent<LocomotionControl>().GetHeadJoint().transform.position);
         _leaningRefOrientation = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles;
 
         if (_leaningRefOrientation.x > 180)
@@ -225,7 +225,7 @@ public class LocomotionControl : MonoBehaviour
 
     private void UpdateInputs()
     {
-        Vector3 diff = GameObject.Find("Camera").transform.localPosition - _leaningRefPosition;
+        Vector3 diff = this.transform.InverseTransformPoint(GetComponent<LocomotionControl>().GetHeadJoint().transform.position) - _leaningRefPosition;
         _sidwayLeaningCM = diff.x;
         _forwadLeaningCM = diff.z;
 

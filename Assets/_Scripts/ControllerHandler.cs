@@ -50,7 +50,7 @@ public class ControllerHandler : MonoBehaviour
     public void FinishCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
         GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().FinishCenterofRotationCalibration();
-        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().CalibrateLeaningKS();
+        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().CalibrateLeaningKS();     
         Debug.Log("Finished calibration...");
     }
 
