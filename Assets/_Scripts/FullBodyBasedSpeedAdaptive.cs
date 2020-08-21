@@ -7,6 +7,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     #region Public Fields
 
     [Header("Method Settings")]
+    public bool _enabledPathPrediction;
+
     [Tooltip("Changes the speed of forward and backward translation.")]
     public float _translationSpeedFactor;
 
@@ -77,7 +79,12 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void Update()
     {
-        if (GetComponent<LocomotionControl>().GetHeadJoint() != null)
+        for (int i = 0; i < 50; ++i)
+        {
+            _spheres[i].SetActive(_enabledPathPrediction);
+        }
+
+        if (GetComponent<LocomotionControl>().GetHeadJoint() != null && _enabledPathPrediction)
         {
             SimulateMovement();
         }
