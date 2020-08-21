@@ -1,6 +1,6 @@
-﻿using System.Collections;
+﻿using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 {
@@ -46,22 +46,41 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private float _jumpSaturationTimer;
     private float _relDistanceToJump = 1.0f;
+    private List<GameObject> _spheres;
+
 
     private void Start()
     {
         _jumpSaturationTimer = _maxSaturationTime;
+
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        _spheres = new List<GameObject>();
+
+        for (int i = 0; i < 50; ++i)
+        {
+            _spheres.Add(Instantiate(sphere, this.transform.position, Quaternion.identity, this.transform));
+        }
     }
 
     void FixedUpdate()
     {
         if(GetComponent<LocomotionControl>().GetHeadJoint() != null)
         {
-            Rotate(CalcRotation(Time.deltaTime));
+            Rotate(Time.deltaTime, this.transform, ref _jumpSaturationTimer);
         } 
         if(!GetComponent<LocomotionControl>().isBreaked())
         {
-            Translate(CalcTranslation(Time.deltaTime, this.transform.position, this.transform.forward, this.transform.right));
+            Translate(Time.deltaTime, this.transform);
         }    
+    }
+
+    private void Update()
+    {
+        if (GetComponent<LocomotionControl>().GetHeadJoint() != null)
+        {
+            SimulateMovement();
+        }
     }
 
     public float GetRelativeDistanceToJump()
@@ -69,27 +88,38 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         return _relDistanceToJump;
     }
 
-    private Vector3 CalcTranslation(float deltaTime, Vector3 origin, Vector3 direction, Vector3 right)
+
+    private void SimulateMovement()
     {
-        Vector3 target = origin + (direction * GetComponent<LocomotionControl>().Get2DLeaningAxis().y * deltaTime * _translationSpeedFactor);
+        // make a copy of the current transform, working as its prediction
+        GameObject future = new GameObject();
+        future.transform.SetParent(this.transform.parent);
+        future.transform.SetPositionAndRotation(this.transform.position, this.transform.rotation);
+        float futureSaturatiuonTimer = _jumpSaturationTimer;
+
+        for (int i = 0; i < 50; ++i)
+        {
+            Rotate(0.04f, future.transform, ref futureSaturatiuonTimer);
+            Translate(0.04f, future.transform);
+            _spheres[i].transform.position = future.transform.position + new Vector3(0, 0.5f, 0);   
+        }
+        Destroy(future);
+    }
+
+    private void Translate(float deltaTime, Transform trans)
+    {
+        trans.position += trans.forward * GetComponent<LocomotionControl>().Get2DLeaningAxis().y * deltaTime * _translationSpeedFactor;
 
         // TODO smooth transition into this
         // when slow enough leaning controlles strafing
         if (GetComponent<LocomotionControl>().Get2DLeaningAxis().y < _velocityThesholdForInterfaceSwitch)
         {
-            target += right * GetComponent<LocomotionControl>().Get2DLeaningAxis().x * deltaTime * _translationSpeedFactor;
+            trans.position += trans.right * GetComponent<LocomotionControl>().Get2DLeaningAxis().x * deltaTime * _translationSpeedFactor;
         }
-
-        return target;
     }
 
-    private void Translate(Vector3 position)
+    private void Rotate(float deltaTime, Transform trans, ref float saturationTimer)
     {
-        this.transform.position = position;
-    }
-
-    private float CalcRotation(float deltaTime)
-    { 
         float angle = _maxRotationSpeed * deltaTime;
         
         // TODO smooth transitions between the two modi
@@ -111,13 +141,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             angle *= GetComponent<LocomotionControl>().GetHeadYawAxis();
         }
 
-        return angle;
-    }
-
-    private void Rotate(float angle)
-    {
-        _jumpSaturationTimer -= Time.deltaTime;
-        float signedAnglePerSecond = angle / Time.deltaTime;
+        saturationTimer -= deltaTime;
+        float signedAnglePerSecond = angle / deltaTime;
 
         // calculate distance to jump for the feedback
         _relDistanceToJump = Mathf.Clamp(Mathf.Abs(signedAnglePerSecond) / _rotationalJumpingThresholdDegreePerSecond, 0, 1);
@@ -130,9 +155,9 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // finally aplly the rotation
         if (_enableRotationalJumping &&
            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
-           _jumpSaturationTimer < 0)
+           saturationTimer < 0)
         {
-            this.transform.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
+            trans.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
 
             // reset saturation time
             float timeModifyer = 1;
@@ -140,11 +165,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             {
                 timeModifyer += (Mathf.Abs(signedAnglePerSecond) - _rotationalJumpingThresholdDegreePerSecond) / _timeDecreasingRotationalSpeedOvershoot;
             }
-            _jumpSaturationTimer = _maxSaturationTime / timeModifyer;
+            saturationTimer = _maxSaturationTime / timeModifyer;
         }
         else
         {
-            this.transform.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, angle);
+            trans.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, angle);
         }
     }
 }
