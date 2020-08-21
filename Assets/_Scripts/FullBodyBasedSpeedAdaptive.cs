@@ -67,7 +67,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(GetComponent<LocomotionControl>().GetHeadJoint() != null)
+        // actual travel
+        if (GetComponent<LocomotionControl>().GetHeadJoint() != null)
         {
             Rotate(Time.deltaTime, this.transform, ref _jumpSaturationTimer);
         } 
@@ -79,6 +80,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void Update()
     {
+        // travel simulation
         for (int i = 0; i < 50; ++i)
         {
             _spheres[i].SetActive(_enabledPathPrediction);
