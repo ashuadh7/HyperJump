@@ -28,7 +28,20 @@ public class LocomotionControl : MonoBehaviour
 
     [Tooltip("Define the distance from center which results in maximum axis deviation.")]
     public float _leaningSidewayMaximumCM;
+    
+    // [Tooltip("Power of the exponetial Function")]
+    // [Range(1f, 2f)]
+    private float _exponentialTransferFunctionPower = 1.53f;
+    
+    [Tooltip("Sensitivity of leaning (inside the exponetial function)")]
+    [Range(0f, 5f)]
+    public float _speedSensitiviy = 5f;
 
+    [Tooltip("Speed Limit (outside of the exponential function)")]
+    [Range(0f, 10f)]
+    public float _speedLimit = 10f;
+    
+    // In Summary --> input = speedLimit * (leaningMag * speedSensitivity)^(exponential)
     #endregion 
 
 
@@ -143,6 +156,9 @@ public class LocomotionControl : MonoBehaviour
         {
             _headYawAxis = (_headYawAxis - _headYawDeadzone * Mathf.Sign(_headYawAxis)) / (1.0f - _headYawDeadzone);
         }
+
+        // float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone)*_speedSensitiviy, _exponentialTransferFunctionPower)*_speedLimit;
+        // _leaningAxis = _leaningAxis.normalized * velocity; 
     }
 
     public GameObject GetHeadJoint()
