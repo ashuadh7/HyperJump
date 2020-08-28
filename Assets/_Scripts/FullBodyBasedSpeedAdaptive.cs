@@ -16,6 +16,9 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Range(0f, 1f)]
     public float _velocityThesholdForInterfaceSwitch;
 
+    [Tooltip("... or just the HMD position instead.")]
+    public bool _useCalibratedCenterOfRotation;
+
     [Tooltip("Gives the maximum rotational speed in degree per second.")]
     public float _maxRotationSpeed;
 
@@ -68,7 +71,14 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // actual travel
         if (GetComponent<LocomotionControl>().GetHeadJoint() != null)
         {
-            Rotate(Time.deltaTime, this.transform, GetComponent<LocomotionControl>().GetHeadJoint().transform, ref _jumpSaturationTimer);
+            if (_useCalibratedCenterOfRotation)
+            {
+                Rotate(Time.deltaTime, this.transform, GetComponent<LocomotionControl>().GetHeadJoint().transform, ref _jumpSaturationTimer);
+            }
+            else
+            {
+                Rotate(Time.deltaTime, this.transform, GameObject.Find("Camera").transform, ref _jumpSaturationTimer);
+            }
         } 
         if(!GetComponent<LocomotionControl>().isBreaked())
         {
@@ -107,7 +117,15 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
         for (int i = 0; i < 50; ++i)
         {
-            Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref futureSaturatiuonTimer);
+            if(_useCalibratedCenterOfRotation)
+            {
+                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref futureSaturatiuonTimer);
+            }
+            else
+            {
+                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureSaturatiuonTimer);
+            }
+
             Translate(0.04f, _futureCameraRig.transform);
             _spheres[i].transform.position = _futureCamera.transform.position + new Vector3(0, -1.0f, 0);   
         }
