@@ -14,38 +14,14 @@ namespace Valve.VR
     using UnityEngine;
     
     
-    public class SteamVR_Input_ActionSet_MySet : Valve.VR.SteamVR_ActionSet
+    public class SteamVR_Input_ActionSet_CouchPotato : Valve.VR.SteamVR_ActionSet
     {
-        
-        public virtual SteamVR_Action_Boolean Click
-        {
-            get
-            {
-                return SteamVR_Actions.mySet_Click;
-            }
-        }
-        
-        public virtual SteamVR_Action_Pose RightPose
-        {
-            get
-            {
-                return SteamVR_Actions.mySet_RightPose;
-            }
-        }
-        
-        public virtual SteamVR_Action_Vector2 Throttle
-        {
-            get
-            {
-                return SteamVR_Actions.mySet_Throttle;
-            }
-        }
         
         public virtual SteamVR_Action_Boolean ResetPosition
         {
             get
             {
-                return SteamVR_Actions.mySet_ResetPosition;
+                return SteamVR_Actions.couchPotato_ResetPosition;
             }
         }
         
@@ -53,7 +29,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.mySet_CalibrateLeaning;
+                return SteamVR_Actions.couchPotato_CalibrateLeaning;
             }
         }
         
@@ -61,7 +37,7 @@ namespace Valve.VR
         {
             get
             {
-                return SteamVR_Actions.mySet_Break;
+                return SteamVR_Actions.couchPotato_Break;
             }
         }
     }
