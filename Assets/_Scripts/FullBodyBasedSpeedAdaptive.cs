@@ -50,7 +50,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     #endregion
 
     private float _jumpSaturationTimer;
-    private float _relDistanceToJump = 1.0f;
+    private float _relDistanceToJump = 0.0f;
 
     // path prediction
     private List<GameObject> _spheres;
@@ -170,11 +170,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         float signedAnglePerSecond = angle / deltaTime;
 
         // calculate distance to jump for the feedback
-        _relDistanceToJump = Mathf.Clamp(Mathf.Abs(signedAnglePerSecond) / _rotationalJumpingThresholdDegreePerSecond, 0, 1);
+        _relDistanceToJump = Mathf.Clamp(signedAnglePerSecond / _rotationalJumpingThresholdDegreePerSecond, -1, 1);
         if (!_enableRotationalJumping)
         {
-            // allways max thus the vignette is not there in this case, such as in case of a jump
-            _relDistanceToJump = 1.0f;
+            _relDistanceToJump = 0.0f;
         }
 
         // finally aplly the rotation
