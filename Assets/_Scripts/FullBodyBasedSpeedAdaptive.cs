@@ -48,21 +48,19 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private float _jumpSaturationTimer;
     private float _relDistanceToJump = 1.0f;
+
+    // path prediction
     private List<GameObject> _spheres;
+    GameObject _futureCameraRig;
+    GameObject _futureCamera;
+    GameObject _futureRotationalCenter;
 
 
     private void Start()
     {
         _jumpSaturationTimer = _maxSaturationTime;
 
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-        _spheres = new List<GameObject>();
-
-        for (int i = 0; i < 50; ++i)
-        {
-            _spheres.Add(Instantiate(sphere, this.transform.position, Quaternion.identity, this.transform));
-        }
+        InitPathPrediction();
     }
 
     void FixedUpdate()
@@ -70,7 +68,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // actual travel
         if (GetComponent<LocomotionControl>().GetHeadJoint() != null)
         {
-            Rotate(Time.deltaTime, this.transform, ref _jumpSaturationTimer);
+            Rotate(Time.deltaTime, this.transform, GetComponent<LocomotionControl>().GetHeadJoint().transform, ref _jumpSaturationTimer);
         } 
         if(!GetComponent<LocomotionControl>().isBreaked())
         {
@@ -100,19 +98,19 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void SimulateMovement()
     {
-        // make a copy of the current transform, working as its prediction
-        GameObject future = new GameObject();
-        future.transform.SetParent(this.transform.parent);
-        future.transform.SetPositionAndRotation(this.transform.position, this.transform.rotation);
+        // make a copy of the current transform, working as its prediction  
+        _futureCameraRig.transform.SetPositionAndRotation(this.transform.position, this.transform.rotation);
+        _futureCamera.transform.SetPositionAndRotation(GameObject.Find("Camera").transform.position, GameObject.Find("Camera").transform.rotation);
+        _futureRotationalCenter.transform.position = GetComponent<LocomotionControl>().GetHeadJoint().transform.position;
+
         float futureSaturatiuonTimer = _jumpSaturationTimer;
 
         for (int i = 0; i < 50; ++i)
         {
-            Rotate(0.04f, future.transform, ref futureSaturatiuonTimer);
-            Translate(0.04f, future.transform);
-            _spheres[i].transform.position = future.transform.position + new Vector3(0, 0.5f, 0);   
+            Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref futureSaturatiuonTimer);
+            Translate(0.04f, _futureCameraRig.transform);
+            _spheres[i].transform.position = _futureCamera.transform.position + new Vector3(0, -1.0f, 0);   
         }
-        Destroy(future);
     }
 
     private void Translate(float deltaTime, Transform trans)
@@ -127,7 +125,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
     }
 
-    private void Rotate(float deltaTime, Transform trans, ref float saturationTimer)
+    private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer)
     {
         float angle = _maxRotationSpeed * deltaTime;
         
@@ -166,7 +164,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
            saturationTimer < 0)
         {
-            trans.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
+            trans.RotateAround(rotationalCenter.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
 
             // reset saturation time
             float timeModifyer = 1;
@@ -178,7 +176,36 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
         else
         {
-            trans.RotateAround(GetComponent<LocomotionControl>().GetHeadJoint().transform.position, Vector3.up, angle);
+            trans.RotateAround(rotationalCenter.position, Vector3.up, angle);
         }
+    }
+
+    private void InitPathPrediction()
+    {
+        // setup path
+        GameObject pathPrediction = new GameObject("PathPrediction");
+        pathPrediction.transform.parent = this.transform; ;
+
+        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        sphere.transform.SetPositionAndRotation(this.transform.position, Quaternion.identity);
+        sphere.transform.parent = pathPrediction.transform;
+        _spheres = new List<GameObject>();
+        _spheres.Add(sphere);
+
+        for (int i = 1; i < 50; ++i)
+        {
+            _spheres.Add(Instantiate(sphere, this.transform.position, Quaternion.identity, pathPrediction.transform));
+        }
+
+        // setup simulated rig
+        _futureCameraRig = new GameObject("SimulatedCameraRig");
+        _futureCameraRig.transform.SetParent(this.transform.parent);
+
+        _futureCamera = new GameObject("SiumlatedCamera");
+        _futureCamera.transform.SetParent(_futureCameraRig.transform);
+
+        _futureRotationalCenter = new GameObject("SimulatedHeadJoint");
+        _futureRotationalCenter.transform.SetParent(_futureCamera.transform);
     }
 }
