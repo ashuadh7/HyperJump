@@ -190,12 +190,15 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
         sphere.transform.SetPositionAndRotation(this.transform.position, Quaternion.identity);
         sphere.transform.parent = pathPrediction.transform;
+        Destroy(sphere.GetComponent<Collider>());
         _spheres = new List<GameObject>();
         _spheres.Add(sphere);
 
         for (int i = 1; i < 50; ++i)
         {
-            _spheres.Add(Instantiate(sphere, this.transform.position, Quaternion.identity, pathPrediction.transform));
+            GameObject go = Instantiate(sphere, this.transform.position, Quaternion.identity, pathPrediction.transform);
+            Destroy(go.GetComponent<Collider>());
+            _spheres.Add(go);
         }
 
         // setup simulated rig
