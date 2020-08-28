@@ -131,7 +131,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         
         // TODO smooth transitions between the two modi
         // when fast enough leaning controlles rotation
-        if (GetComponent<LocomotionControl>().Get2DLeaningAxis().y >= _velocityThesholdForInterfaceSwitch)
+        if (Mathf.Abs(GetComponent<LocomotionControl>().Get2DLeaningAxis().y) >= _velocityThesholdForInterfaceSwitch)
         {
             // leaning faster to the sides results in faster yaw rotation
             angle *= GetComponent<LocomotionControl>().Get2DLeaningAxis().x;
