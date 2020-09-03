@@ -35,11 +35,11 @@ public class LocomotionControl : MonoBehaviour
     
     [Tooltip("Sensitivity of leaning (inside the exponetial function)")]
     [Range(0f, 5f)]
-    public float _speedSensitiviy = 5f;
+    public float _speedSensitiviy = 1f;
 
     [Tooltip("Speed Limit (outside of the exponential function)")]
     [Range(0f, 10f)]
-    public float _speedLimit = 10f;
+    public float _speedLimit = 1f;
     
     // In Summary --> input = speedLimit * (leaningMag * speedSensitivity)^(exponential)
     #endregion 
@@ -130,35 +130,35 @@ public class LocomotionControl : MonoBehaviour
     private void ApplyDeadzonesToAxis()
     {
         // apply smooth deadzones
-        if (_leaningAxis.y < 0 && _leaningAxis.y > -_leaningForwardDeadzone || _leaningAxis.y > 0 && _leaningAxis.y < _leaningForwardDeadzone)
-        {
-            _leaningAxis.y = 0;
-        }
-        else
-        {
-            _leaningAxis.y = (_leaningAxis.y - _leaningForwardDeadzone * Mathf.Sign(_leaningAxis.y)) / (1.0f - _leaningForwardDeadzone);
-        }
+        // if (_leaningAxis.y < 0 && _leaningAxis.y > -_leaningForwardDeadzone || _leaningAxis.y > 0 && _leaningAxis.y < _leaningForwardDeadzone)
+        // {
+        //     _leaningAxis.y = 0;
+        // }
+        // else
+        // {
+        //     _leaningAxis.y = (_leaningAxis.y - _leaningForwardDeadzone * Mathf.Sign(_leaningAxis.y)) / (1.0f - _leaningForwardDeadzone);
+        // }
 
-        if (_leaningAxis.x < 0 && _leaningAxis.x > -_leaningSidewayDeadzone || _leaningAxis.x > 0 && _leaningAxis.x < _leaningSidewayDeadzone)
-        {
-            _leaningAxis.x = 0;
-        }
-        else
-        {
-            _leaningAxis.x = (_leaningAxis.x - _leaningSidewayDeadzone * Mathf.Sign(_leaningAxis.x)) / (1.0f - _leaningSidewayDeadzone);
-        }
+        // if (_leaningAxis.x < 0 && _leaningAxis.x > -_leaningSidewayDeadzone || _leaningAxis.x > 0 && _leaningAxis.x < _leaningSidewayDeadzone)
+        // {
+        //     _leaningAxis.x = 0;
+        // }
+        // else
+        // {
+        //     _leaningAxis.x = (_leaningAxis.x - _leaningSidewayDeadzone * Mathf.Sign(_leaningAxis.x)) / (1.0f - _leaningSidewayDeadzone);
+        // }
 
-        if (_headYawAxis < 0 && _headYawAxis > -_headYawDeadzone || _headYawAxis > 0 && _headYawAxis < _headYawDeadzone)
-        {
-            _headYawAxis = 0;
-        }
-        else
-        {
-            _headYawAxis = (_headYawAxis - _headYawDeadzone * Mathf.Sign(_headYawAxis)) / (1.0f - _headYawDeadzone);
-        }
+        // if (_headYawAxis < 0 && _headYawAxis > -_headYawDeadzone || _headYawAxis > 0 && _headYawAxis < _headYawDeadzone)
+        // {
+        //     _headYawAxis = 0;
+        // }
+        // else
+        // {
+        //     _headYawAxis = (_headYawAxis - _headYawDeadzone * Mathf.Sign(_headYawAxis)) / (1.0f - _headYawDeadzone);
+        // }
 
-        // float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone)*_speedSensitiviy, _exponentialTransferFunctionPower)*_speedLimit;
-        // _leaningAxis = _leaningAxis.normalized * velocity; 
+        float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone)*_speedSensitiviy, _exponentialTransferFunctionPower)*_speedLimit;
+        _leaningAxis = _leaningAxis.normalized * velocity; 
     }
 
     public GameObject GetHeadJoint()
