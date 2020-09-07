@@ -33,7 +33,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     [Tooltip("Defines the default, unmodified size of a jump rotation in degree.")]
     [Range(0f, 90f)]
-    public float defaultJumpSize;
+    public float _defaultJumpSize;
 
     // the jumping threshold is given by rotational degree per second, this should make the threshold independent of the method used but
     // (be carefull) dependet of the transfer function
@@ -47,9 +47,18 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Tooltip("When decreasing saturation time is activ this gives the increase of rotational speed above the threshold to effectivly halfen the saturation time.")]
     public float _timeDecreasingRotationalSpeedOvershoot;
 
+    [Header("Translational Jumping")]
+    public bool _enableTranslationalJumping;
+
+    public float _minJumpSize;
+
+    public float _translationalJumpingThresholdMeterPerSecond;
+
     #endregion
 
-    private float _jumpSaturationTimer;
+    private float _rotationJumpSaturationTimer;
+    private bool _jumpedRotationalThisFrame;
+    private float _translationJumpSaturationTimer;
     private float _relDistanceToJump = 0.0f;
 
     // path prediction
@@ -61,8 +70,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void Start()
     {
-        _jumpSaturationTimer = _maxSaturationTime;
-
+        _rotationJumpSaturationTimer = _maxSaturationTime;
+        _translationJumpSaturationTimer = _maxSaturationTime;
         InitPathPrediction();
     }
 
@@ -73,16 +82,16 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         {
             if (_useCalibratedCenterOfRotation)
             {
-                Rotate(Time.deltaTime, this.transform, GetComponent<LocomotionControl>().GetHeadJoint().transform, ref _jumpSaturationTimer);
+                Rotate(Time.deltaTime, this.transform, GetComponent<LocomotionControl>().GetHeadJoint().transform, ref _rotationJumpSaturationTimer);
             }
             else
             {
-                Rotate(Time.deltaTime, this.transform, GameObject.Find("Camera").transform, ref _jumpSaturationTimer);
+                Rotate(Time.deltaTime, this.transform, GameObject.Find("Camera").transform, ref _rotationJumpSaturationTimer);
             }
         } 
         if(!GetComponent<LocomotionControl>().isBreaked())
         {
-            Translate(Time.deltaTime, this.transform);
+            Translate(Time.deltaTime, this.transform, ref _translationJumpSaturationTimer);
         }    
     }
 
@@ -113,27 +122,44 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         _futureCamera.transform.SetPositionAndRotation(GameObject.Find("Camera").transform.position, GameObject.Find("Camera").transform.rotation);
         _futureRotationalCenter.transform.position = GetComponent<LocomotionControl>().GetHeadJoint().transform.position;
 
-        float futureSaturatiuonTimer = _jumpSaturationTimer;
+        float futureRotationalSaturatiuonTimer = _rotationJumpSaturationTimer;
+        float futureTranslationalSaturationTimer = _translationJumpSaturationTimer;
 
         for (int i = 0; i < 50; ++i)
         {
             if(_useCalibratedCenterOfRotation)
             {
-                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref futureSaturatiuonTimer);
+                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref futureRotationalSaturatiuonTimer);
             }
             else
             {
-                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureSaturatiuonTimer);
+                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRotationalSaturatiuonTimer);
             }
 
-            Translate(0.04f, _futureCameraRig.transform);
+            Translate(0.04f, _futureCameraRig.transform, ref futureTranslationalSaturationTimer);
             _spheres[i].transform.position = _futureCamera.transform.position + new Vector3(0, -1.0f, 0);   
         }
     }
 
-    private void Translate(float deltaTime, Transform trans)
-    {
-        trans.position += trans.forward * GetComponent<LocomotionControl>().Get2DLeaningAxis().y * deltaTime * _translationSpeedFactor;
+    private void Translate(float deltaTime, Transform trans, ref float saturationTimer)
+    {  
+        saturationTimer -= deltaTime;
+        float distanceToTravel = GetComponent<LocomotionControl>().Get2DLeaningAxis().y * _translationSpeedFactor;
+
+        // jump?
+        if (_enableTranslationalJumping &&
+          Mathf.Abs(distanceToTravel) > _translationalJumpingThresholdMeterPerSecond &&
+          saturationTimer < 0)
+        {
+            trans.position += trans.forward * _minJumpSize * Mathf.Sign(distanceToTravel); 
+
+            // TODO optional time modifier
+            saturationTimer = _maxSaturationTime;
+        }
+        else
+        {
+            trans.position += trans.forward * distanceToTravel * deltaTime;
+        }
 
         // TODO smooth transition into this
         // when slow enough leaning controlles strafing
@@ -181,7 +207,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
            saturationTimer < 0)
         {
-            trans.RotateAround(rotationalCenter.position, Vector3.up, defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
+            trans.RotateAround(rotationalCenter.position, Vector3.up, _defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
 
             // reset saturation time
             float timeModifyer = 1;
