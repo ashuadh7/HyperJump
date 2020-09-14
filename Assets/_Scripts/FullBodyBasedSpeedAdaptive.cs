@@ -141,7 +141,13 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             }
 
             Translate(0.04f, _futureCameraRig.transform, ref futureTranslationalSaturationTimer);
-            _spheres[i].transform.position = _futureCamera.transform.position + new Vector3(0, -1.0f, 0);   
+            
+            RaycastHit hit;
+            int layerMask = 1 << 8; // terrain
+            Physics.Raycast(_futureCamera.transform.position + new Vector3(0,10,0), transform.TransformDirection(-Vector3.up), out hit, Mathf.Infinity,
+                layerMask);
+            
+            _spheres[i].transform.position = hit.point;   
         }
     }
 
@@ -241,7 +247,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         pathPrediction.transform.parent = this.transform; ;
 
         GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
         sphere.transform.SetPositionAndRotation(this.transform.position, Quaternion.identity);
         sphere.transform.parent = pathPrediction.transform;
         Destroy(sphere.GetComponent<Collider>());
