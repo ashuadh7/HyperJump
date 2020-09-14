@@ -56,9 +56,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     #endregion
 
-    private float _rotationJumpSaturationTimer;
-    private bool _jumpedRotationalThisFrame;
-    private float _translationJumpSaturationTimer;
+    private float _jumpSaturationTimer;
     private float _relDistanceToJump = 0.0f;
 
     // path prediction
@@ -74,29 +72,34 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     {
         _locomotionControl = GetComponent<LocomotionControl>();
         _camera = GameObject.Find("Camera");
-        _rotationJumpSaturationTimer = _maxSaturationTime;
-        _translationJumpSaturationTimer = _maxSaturationTime;
+        _jumpSaturationTimer = _maxSaturationTime;
         InitPathPrediction();
     }
 
     void FixedUpdate()
     {
+        // async timers
+        float saturationTimeCopy = _jumpSaturationTimer;
+        
         // actual travel
         if (_locomotionControl.GetHeadJoint() != null)
         {
             if (_useCalibratedCenterOfRotation)
             {
-                Rotate(Time.deltaTime, this.transform, _locomotionControl.GetHeadJoint().transform, ref _rotationJumpSaturationTimer);
+                Rotate(Time.deltaTime, this.transform, _locomotionControl.GetHeadJoint().transform, ref saturationTimeCopy);
             }
             else
             {
-                Rotate(Time.deltaTime, this.transform, _camera.transform, ref _rotationJumpSaturationTimer);
+                Rotate(Time.deltaTime, this.transform, _camera.transform, ref saturationTimeCopy);
             }
         } 
         if(!_locomotionControl.IsBraked())
         {
-            Translate(Time.deltaTime, this.transform, ref _translationJumpSaturationTimer);
-        }    
+            Translate(Time.deltaTime, this.transform, ref _jumpSaturationTimer);
+        }
+
+        // resync timers
+        _jumpSaturationTimer = Mathf.Max(saturationTimeCopy, _jumpSaturationTimer);
     }
 
     private void Update()
@@ -126,21 +129,26 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         _futureCamera.transform.SetPositionAndRotation(_camera.transform.position, _camera.transform.rotation);
         _futureRotationalCenter.transform.position = _locomotionControl.GetHeadJoint().transform.position;
 
-        float futureRotationalSaturatiuonTimer = _rotationJumpSaturationTimer;
-        float futureTranslationalSaturationTimer = _translationJumpSaturationTimer;
+        float futureRsaturatiuonTimer = _jumpSaturationTimer;
 
         for (int i = 0; i < 50; ++i)
         {
+            // async timers
+            float saturationTimeCopy = futureRsaturatiuonTimer;
+            
             if(_useCalibratedCenterOfRotation)
             {
-                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref futureRotationalSaturatiuonTimer);
+                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref saturationTimeCopy);
             }
             else
             {
-                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRotationalSaturatiuonTimer);
+                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref saturationTimeCopy);
             }
 
-            Translate(0.04f, _futureCameraRig.transform, ref futureTranslationalSaturationTimer);
+            Translate(0.04f, _futureCameraRig.transform, ref futureRsaturatiuonTimer);
+            
+            // resync timers
+            futureRsaturatiuonTimer = Mathf.Max(saturationTimeCopy, futureRsaturatiuonTimer);
             
             RaycastHit hit;
             int layerMask = 1 << 8; // terrain
@@ -220,9 +228,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
 
         // finally apply the rotation
-        if (_enableRotationalJumping &&
-           Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
-           saturationTimer < 0)
+        if (_enableRotationalJumping && 
+            Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
+            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond && 
+            saturationTimer < 0)
         {
             trans.RotateAround(rotationalCenter.position, Vector3.up, _defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
 

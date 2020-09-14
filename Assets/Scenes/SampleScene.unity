@@ -121,27 +121,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &93525199 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8882608745496202511, guid: 4c8603fae1ffcf742a29197953d988ca,
-    type: 3}
-  m_PrefabInstance: {fileID: 1021948409}
-  m_PrefabAsset: {fileID: 0}
---- !u!64 &93525203
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 93525199}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 4
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 6323888820769799002, guid: 4c8603fae1ffcf742a29197953d988ca, type: 3}
---- !u!43 &97485835
+--- !u!43 &37566939
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -304,6 +284,26 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &93525199 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8882608745496202511, guid: 4c8603fae1ffcf742a29197953d988ca,
+    type: 3}
+  m_PrefabInstance: {fileID: 1021948409}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &93525203
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 93525199}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 6323888820769799002, guid: 4c8603fae1ffcf742a29197953d988ca, type: 3}
 --- !u!1 &148279137 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8106410255896245783, guid: 4c8603fae1ffcf742a29197953d988ca,
@@ -540,6 +540,40 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 460351132649845871, guid: 4c8603fae1ffcf742a29197953d988ca, type: 3}
+--- !u!21 &649876560
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sprites/Default
+  m_Shader: {fileID: 10753, guid: 0000000000000000f000000000000000, type: 0}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - PixelSnap: 0
+    - _EnableExternalAlpha: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &674042847
 GameObject:
   m_ObjectHideFlags: 0
@@ -2475,11 +2509,11 @@ PrefabInstance:
     - target: {fileID: 2348914, guid: 4d293c8e162f3874b982baadd71153d2, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 1683533890}
+      objectReference: {fileID: 649876560}
     - target: {fileID: 3380982, guid: 4d293c8e162f3874b982baadd71153d2, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 97485835}
+      objectReference: {fileID: 37566939}
     - target: {fileID: 20000014031267948, guid: 4d293c8e162f3874b982baadd71153d2,
         type: 3}
       propertyPath: m_RenderingPath
@@ -2724,40 +2758,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7148686405891484455, guid: 4c8603fae1ffcf742a29197953d988ca, type: 3}
---- !u!21 &1683533890
-Material:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Sprites/Default
-  m_Shader: {fileID: 10753, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: 
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _AlphaTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Floats:
-    - PixelSnap: 0
-    - _EnableExternalAlpha: 0
-    m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Flip: {r: 1, g: 1, b: 1, a: 1}
-    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1694608554 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -6855531464153224653, guid: 4c8603fae1ffcf742a29197953d988ca,
@@ -2896,7 +2896,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c7d2a103637e2914ba496b97e76cdaa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _leaningForwardDeadzone: 0
+  _leaningForwardDeadzone: 0.1
+  _headYawDeadzone: 0.2
   _headYawMaxAngle: 90
   _leaningForwardMaximumCM: 0.2
   _leaningSidewayMaximumCM: 0.2
@@ -2940,7 +2941,7 @@ MonoBehaviour:
   _maxSaturationTime: 0.5
   _defaultJumpSize: 7.5
   _rotationalJumpingThresholdDegreePerSecond: 10
-  _enableDecreasingSaturationTime: 1
+  _enableDecreasingSaturationTime: 0
   _timeDecreasingRotationalSpeedOvershoot: 20
   _enableTranslationalJumping: 1
   _maxJumpSize: 5

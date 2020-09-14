@@ -11,6 +11,8 @@ public class LocomotionControl : MonoBehaviour
     [Range(0f, 0.9f)]
     public float _leaningForwardDeadzone;
 
+    public float _headYawDeadzone;
+    
     [Tooltip("Define the head yaw angel resulting in maximum axis deviation.")]
     [Range(0f, 180f)]
     public float _headYawMaxAngle;
@@ -125,8 +127,17 @@ public class LocomotionControl : MonoBehaviour
 
     private void ApplyDeadzonesToAxis()
     {
-        float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone)*_speedSensitivity, _exponentialTransferFunctionPower)*_speedLimit;
+        float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone) * _speedSensitivity, _exponentialTransferFunctionPower) * _speedLimit;
         _leaningAxis = _leaningAxis.normalized * velocity; 
+        
+        if (_headYawAxis < 0 && _headYawAxis > -_headYawDeadzone || _headYawAxis > 0 && _headYawAxis < _headYawDeadzone) 
+        {
+            _headYawAxis = 0;
+        }
+        else
+        {
+            _headYawAxis = (_headYawAxis - _headYawDeadzone * Mathf.Sign(_headYawAxis)) / (1.0f - _headYawDeadzone);
+        }
     }
 
     public GameObject GetHeadJoint()
