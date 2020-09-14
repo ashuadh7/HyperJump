@@ -164,13 +164,6 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         {
             trans.position += distanceToTravel * deltaTime * trans.forward;
         }
-
-        // TODO smooth transition into this
-        // when slow enough leaning controlles strafing
-        if (_locomotionControl.Get2DLeaningAxis().y < _velocityThresholdForInterfaceSwitch)
-        {
-            trans.position += deltaTime * _translationSpeedFactor * _locomotionControl.Get2DLeaningAxis().x * trans.right;
-        }
     }
 
     private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer)
