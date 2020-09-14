@@ -3157,7 +3157,7 @@ MonoBehaviour:
   _enableRotationalJumping: 1
   _maxSaturationTime: 0.5
   _defaultJumpSize: 7.5
-  _rotationalJumpingThresholdDegreePerSecond: 15
+  _rotationalJumpingThresholdDegreePerSecond: 10
   _enableDecreasingSaturationTime: 1
   _timeDecreasingRotationalSpeedOvershoot: 20
   _enableTranslationalJumping: 1
