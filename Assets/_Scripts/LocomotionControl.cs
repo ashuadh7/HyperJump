@@ -7,17 +7,9 @@ public class LocomotionControl : MonoBehaviour
 {
     #region Public Fields
     [Header("Locomotion Settings")]
-    [Tooltip("Leaning forward deadzone in percent.")]
+    [Tooltip("Leaning forward dead-zone in percent.")]
     [Range(0f, 0.9f)]
     public float _leaningForwardDeadzone;
-
-    [Tooltip("Leaning sideways deadzone in percent.")]
-    [Range(0f, 0.9f)]
-    public float _leaningSidewayDeadzone;
-
-    [Tooltip("Head yaw deadzone in percent.")]
-    [Range(0f, 0.9f)]
-    public float _headYawDeadzone;
 
     [Tooltip("Define the head yaw angel resulting in maximum axis deviation.")]
     [Range(0f, 180f)]
@@ -29,26 +21,24 @@ public class LocomotionControl : MonoBehaviour
     [Tooltip("Define the distance from center which results in maximum axis deviation.")]
     public float _leaningSidewayMaximumCM;
     
-    // [Tooltip("Power of the exponetial Function")]
-    // [Range(1f, 2f)]
-    private float _exponentialTransferFunctionPower = 1.53f;
-    
-    [Tooltip("Sensitivity of leaning (inside the exponetial function)")]
+    [Tooltip("Sensitivity of leaning (inside the exponential function)")]
     [Range(0f, 5f)]
-    public float _speedSensitiviy = 1f;
+    public float _speedSensitivity = 1f;
 
     [Tooltip("Speed Limit (outside of the exponential function)")]
     [Range(0f, 10f)]
+    // In Summary --> input = speedLimit * (leaningMag * speedSensitivity)^(exponential)
     public float _speedLimit = 1f;
     
-    // In Summary --> input = speedLimit * (leaningMag * speedSensitivity)^(exponential)
-    #endregion 
+    #endregion
 
+    private GameObject _camera;
+    private FullBodyBasedSpeedAdaptive _advancedLocomotionInterface;
 
     private Vector3 _leaningRefPosition = Vector3.zero;
     private Vector3 _leaningRefOrientation = Vector3.zero;
 
-    private float _forwadLeaningCM;
+    private float _forwardLeaningCM;
 
     // left being negative
     private float _sidwayLeaningCM; 
@@ -62,27 +52,33 @@ public class LocomotionControl : MonoBehaviour
     private float _headRoll;
 
     private Vector2 _leaningAxis = Vector2.zero;
-    private bool _break;
-
-    // TODO mabye move the whole procedure to its own class
+    private bool _brake;
+    
     // center of rotation calibration
     GameObject _headJoint = null;
     private bool _calibrationRecordingEndabled;
     private List<Vector3> _hmdPositions;
     private List<Vector3> _hmdForwards;
-    private float _samplingFrequence = 0.1f;
+    private float _samplingFrequency = 0.1f;
     private float _samplingTimer;
+    
+    // [Tooltip("Power of the exponetial Function")]
+    // [Range(1f, 2f)]
+    private float _exponentialTransferFunctionPower = 1.53f;
 
 
     void Start()
     {
-        _forwadLeaningCM = 0;
+        _forwardLeaningCM = 0;
         _sidwayLeaningCM = 0;
         _headYaw = 0;
         _headRoll = 0;
-        _break = false;
+        _brake = false;
         _headYawAxis = 0;
-        _calibrationRecordingEndabled = false;    
+        _calibrationRecordingEndabled = false;
+        
+        _camera = GameObject.Find("Camera");
+        _advancedLocomotionInterface = this.GetComponent<FullBodyBasedSpeedAdaptive>();
     }
 
     void Update()
@@ -92,9 +88,9 @@ public class LocomotionControl : MonoBehaviour
             _samplingTimer -= Time.deltaTime;
             if(_samplingTimer < 0)
             {
-                _hmdPositions.Add(GameObject.Find("Camera").transform.position);
-                _hmdForwards.Add(GameObject.Find("Camera").transform.forward);
-                _samplingTimer = _samplingFrequence;
+                _hmdPositions.Add(_camera.transform.position);
+                _hmdForwards.Add(_camera.transform.forward);
+                _samplingTimer = _samplingFrequency;
             }
         }        
         else if (_leaningRefPosition != Vector3.zero)
@@ -122,14 +118,14 @@ public class LocomotionControl : MonoBehaviour
 
     private void NormalizeTranslationalInputsToAxis()
     {
-        _leaningAxis.y = Mathf.Clamp(_forwadLeaningCM / _leaningForwardMaximumCM, -1, 1);
+        _leaningAxis.y = Mathf.Clamp(_forwardLeaningCM / _leaningForwardMaximumCM, -1, 1);
         _leaningAxis.x = Mathf.Clamp(_sidwayLeaningCM / _leaningSidewayMaximumCM, -1, 1);
         _headYawAxis = Mathf.Clamp(_headYaw / _headYawMaxAngle, -1, 1);
     }
 
     private void ApplyDeadzonesToAxis()
     {
-        float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone)*_speedSensitiviy, _exponentialTransferFunctionPower)*_speedLimit;
+        float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone)*_speedSensitivity, _exponentialTransferFunctionPower)*_speedLimit;
         _leaningAxis = _leaningAxis.normalized * velocity; 
     }
 
@@ -140,13 +136,13 @@ public class LocomotionControl : MonoBehaviour
 
     public float GetRelativDistanceToJump()
     {
-        return this.GetComponent<FullBodyBasedSpeedAdaptive>().GetRelativeDistanceToJump();
+        return _advancedLocomotionInterface.GetRelativeDistanceToJump();
     }
 
     public void CalibrateLeaningKS()
     {
-        _leaningRefPosition = this.transform.InverseTransformPoint(GetComponent<LocomotionControl>().GetHeadJoint().transform.position);
-        _leaningRefOrientation = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles;
+        _leaningRefPosition = this.transform.InverseTransformPoint(GetHeadJoint().transform.position);
+        _leaningRefOrientation = _camera.transform.localRotation.eulerAngles;
 
         if (_leaningRefOrientation.x > 180)
         {
@@ -164,23 +160,23 @@ public class LocomotionControl : MonoBehaviour
         }
     }
 
-    public void StartCenterofRotationCalibration()
+    public void StartCenterOfRotationCalibration()
     {
         _calibrationRecordingEndabled = true;
-        _samplingTimer = _samplingFrequence;
+        _samplingTimer = _samplingFrequency;
         _hmdPositions = new List<Vector3>();
         _hmdForwards = new List<Vector3>();  
     }
 
-    public void FinishCenterofRotationCalibration()
+    public void FinishCenterOfRotationCalibration()
     {
         _calibrationRecordingEndabled = false;
         int firstSample = _hmdPositions.Count / 4;
         int secondSample = firstSample * 3;
 
-        // constuct a saggital plane at the head set's current/final position
+        // construct a saggital plane at the head set's current/final position
         Plane saggitalPlane = new Plane();
-        saggitalPlane.SetNormalAndPosition(GameObject.Find("Camera").transform.right, GameObject.Find("Camera").transform.position);
+        saggitalPlane.SetNormalAndPosition(_camera.transform.right, _camera.transform.position);
 
         // shoot a ray from two positions on the calibration arc to the plane the results is the center of (yaw) rotation
         // Note: Only one sample would be nessesary.
@@ -195,13 +191,10 @@ public class LocomotionControl : MonoBehaviour
 
         Vector3 centerOfYawRotationGlobal = (firstTarget + secondTarget) / 2f;
         GameObject centerOfYawRotation = new GameObject("CenterOfYawRotation");
+        
+        _headJoint = Instantiate(centerOfYawRotation, centerOfYawRotationGlobal, Quaternion.identity, _camera.transform);
 
-        // TODO
-        // 1. use this center of rotation for yaw rotations
-        // 2. use it to differ between looking to the side and moving to the side
-        _headJoint = Instantiate(centerOfYawRotation, centerOfYawRotationGlobal, Quaternion.identity, GameObject.Find("Camera").transform);
-
-        Debug.Log("Head's center of yaw rotation distance to headset: " + (GameObject.Find("Camera").transform.position - centerOfYawRotationGlobal).magnitude);
+        Debug.Log("Head's center of yaw rotation distance to headset: " + (_camera.transform.position - centerOfYawRotationGlobal).magnitude);
         
         // Debugging Visualisation 
         /*
@@ -218,18 +211,18 @@ public class LocomotionControl : MonoBehaviour
 
     private void UpdateInputs()
     {
-        Vector3 diff = this.transform.InverseTransformPoint(GetComponent<LocomotionControl>().GetHeadJoint().transform.position) - _leaningRefPosition;
+        Vector3 diff = this.transform.InverseTransformPoint(GetHeadJoint().transform.position) - _leaningRefPosition;
         _sidwayLeaningCM = diff.x;
-        _forwadLeaningCM = diff.z;
+        _forwardLeaningCM = diff.z;
 
-        _headYaw = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.y;
+        _headYaw = _camera.transform.localRotation.eulerAngles.y;
         if (_headYaw > 180)
         {
             _headYaw -= 360;
         }
         _headYaw -= _leaningRefOrientation.y;
 
-        _headRoll = GetComponentInChildren<Camera>().transform.localRotation.eulerAngles.z;
+        _headRoll = _camera.transform.localRotation.eulerAngles.z;
         if (_headRoll > 180)
         {
             _headRoll -= 360;
@@ -238,13 +231,13 @@ public class LocomotionControl : MonoBehaviour
         _headRoll *= -1;
     }
 
-    public void UpdateBreak(bool val)
+    public void UpdateBrake(bool val)
     {
-        _break = val;
+        _brake = val;
     }
 
-    public bool isBreaked()
+    public bool IsBraked()
     {
-        return _break;
+        return _brake;
     }
 }

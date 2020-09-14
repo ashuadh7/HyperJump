@@ -14,7 +14,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     [Tooltip("Gives the point in percent of the maximum speed where strafing is replaced by rotating.")]
     [Range(0f, 1f)]
-    public float _velocityThesholdForInterfaceSwitch;
+    public float _velocityThresholdForInterfaceSwitch;
 
     [Tooltip("... or just the HMD position instead.")]
     public bool _useCalibratedCenterOfRotation;
@@ -67,9 +67,13 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     GameObject _futureCamera;
     GameObject _futureRotationalCenter;
 
-
-    private void Start()
+    private LocomotionControl _locomotionControl;
+    private GameObject _camera;
+    
+    void Start()
     {
+        _locomotionControl = GetComponent<LocomotionControl>();
+        _camera = GameObject.Find("Camera");
         _rotationJumpSaturationTimer = _maxSaturationTime;
         _translationJumpSaturationTimer = _maxSaturationTime;
         InitPathPrediction();
@@ -78,18 +82,18 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     void FixedUpdate()
     {
         // actual travel
-        if (GetComponent<LocomotionControl>().GetHeadJoint() != null)
+        if (_locomotionControl.GetHeadJoint() != null)
         {
             if (_useCalibratedCenterOfRotation)
             {
-                Rotate(Time.deltaTime, this.transform, GetComponent<LocomotionControl>().GetHeadJoint().transform, ref _rotationJumpSaturationTimer);
+                Rotate(Time.deltaTime, this.transform, _locomotionControl.GetHeadJoint().transform, ref _rotationJumpSaturationTimer);
             }
             else
             {
-                Rotate(Time.deltaTime, this.transform, GameObject.Find("Camera").transform, ref _rotationJumpSaturationTimer);
+                Rotate(Time.deltaTime, this.transform, _camera.transform, ref _rotationJumpSaturationTimer);
             }
         } 
-        if(!GetComponent<LocomotionControl>().isBreaked())
+        if(!_locomotionControl.IsBraked())
         {
             Translate(Time.deltaTime, this.transform, ref _translationJumpSaturationTimer);
         }    
@@ -103,7 +107,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             _spheres[i].SetActive(_enabledPathPrediction);
         }
 
-        if (GetComponent<LocomotionControl>().GetHeadJoint() != null && _enabledPathPrediction)
+        if (_locomotionControl.GetHeadJoint() != null && _enabledPathPrediction)
         {
             SimulateMovement();
         }
@@ -119,8 +123,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     {
         // make a copy of the current transform, working as its prediction  
         _futureCameraRig.transform.SetPositionAndRotation(this.transform.position, this.transform.rotation);
-        _futureCamera.transform.SetPositionAndRotation(GameObject.Find("Camera").transform.position, GameObject.Find("Camera").transform.rotation);
-        _futureRotationalCenter.transform.position = GetComponent<LocomotionControl>().GetHeadJoint().transform.position;
+        _futureCamera.transform.SetPositionAndRotation(_camera.transform.position, _camera.transform.rotation);
+        _futureRotationalCenter.transform.position = _locomotionControl.GetHeadJoint().transform.position;
 
         float futureRotationalSaturatiuonTimer = _rotationJumpSaturationTimer;
         float futureTranslationalSaturationTimer = _translationJumpSaturationTimer;
@@ -144,28 +148,28 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     private void Translate(float deltaTime, Transform trans, ref float saturationTimer)
     {  
         saturationTimer -= deltaTime;
-        float distanceToTravel = GetComponent<LocomotionControl>().Get2DLeaningAxis().y * _translationSpeedFactor;
+        float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * _translationSpeedFactor;
 
         // jump?
         if (_enableTranslationalJumping &&
           Mathf.Abs(distanceToTravel) > _translationalJumpingThresholdMeterPerSecond &&
           saturationTimer < 0)
         {
-            trans.position += trans.forward * _minJumpSize * Mathf.Sign(distanceToTravel); 
+            trans.position += _minJumpSize * Mathf.Sign(distanceToTravel) * trans.forward; 
 
             // TODO optional time modifier
             saturationTimer = _maxSaturationTime;
         }
         else
         {
-            trans.position += trans.forward * distanceToTravel * deltaTime;
+            trans.position += distanceToTravel * deltaTime * trans.forward;
         }
 
         // TODO smooth transition into this
         // when slow enough leaning controlles strafing
-        if (GetComponent<LocomotionControl>().Get2DLeaningAxis().y < _velocityThesholdForInterfaceSwitch)
+        if (_locomotionControl.Get2DLeaningAxis().y < _velocityThresholdForInterfaceSwitch)
         {
-            trans.position += trans.right * GetComponent<LocomotionControl>().Get2DLeaningAxis().x * deltaTime * _translationSpeedFactor;
+            trans.position += deltaTime * _translationSpeedFactor * _locomotionControl.Get2DLeaningAxis().x * trans.right;
         }
     }
 
@@ -175,21 +179,21 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         
         // TODO smooth transitions between the two modi
         // when fast enough leaning controlles rotation
-        if (Mathf.Abs(GetComponent<LocomotionControl>().Get2DLeaningAxis().y) >= _velocityThesholdForInterfaceSwitch)
+        if (Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) >= _velocityThresholdForInterfaceSwitch)
         {
             // leaning faster to the sides results in faster yaw rotation
-            angle *= GetComponent<LocomotionControl>().Get2DLeaningAxis().x;
+            angle *= _locomotionControl.Get2DLeaningAxis().x;
             
             // for faster tavel speeds rotation speed is increased;
             if(_enableMotorcycleMode)
             {
-                angle *= (1.0f - GetComponent<LocomotionControl>().Get2DLeaningAxis().y);
+                angle *= (1.0f - _locomotionControl.Get2DLeaningAxis().y);
             }  
         }
         // when slower it is the head yaw only
         else
         {
-            angle *= GetComponent<LocomotionControl>().GetHeadYawAxis();
+            angle *= _locomotionControl.GetHeadYawAxis();
         }
 
         saturationTimer -= deltaTime;

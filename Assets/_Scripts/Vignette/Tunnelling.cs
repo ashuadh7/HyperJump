@@ -4,7 +4,6 @@ using System.Collections;
 namespace Sigtrap.ImageEffects
 {
     [RequireComponent(typeof(Camera))]
-    [ExecuteInEditMode]
     public class Tunnelling : MonoBehaviour
     {
         #region Public Fields
