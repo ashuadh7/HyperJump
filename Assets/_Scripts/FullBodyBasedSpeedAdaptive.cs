@@ -50,7 +50,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Header("Translational Jumping")]
     public bool _enableTranslationalJumping;
 
-    public float _minJumpSize;
+    public float _maxJumpSize;
 
     public float _translationalJumpingThresholdMeterPerSecond;
 
@@ -151,13 +151,27 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * _translationSpeedFactor;
 
         // jump?
+        // TODO & no wall...
         if (_enableTranslationalJumping &&
           Mathf.Abs(distanceToTravel) > _translationalJumpingThresholdMeterPerSecond &&
           saturationTimer < 0)
         {
-            trans.position += _minJumpSize * Mathf.Sign(distanceToTravel) * trans.forward; 
+            RaycastHit hitOrigin, hitTarget;
+            int layerMask = 1 << 8; // terrain
+            Physics.Raycast(transform.position + new Vector3(0,10,0), transform.TransformDirection(-Vector3.up), out hitOrigin, Mathf.Infinity,
+                layerMask);
+            
+            float threshold = _translationalJumpingThresholdMeterPerSecond / _translationSpeedFactor;
+            float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
+            
+            trans.position += normalizedAxis * _maxJumpSize * Mathf.Sign(distanceToTravel) * trans.forward;
+            
+            Physics.Raycast(transform.position + new Vector3(0,10,0), transform.TransformDirection(-Vector3.up), out hitTarget, Mathf.Infinity,
+                layerMask);
 
-            // TODO optional time modifier
+            float terrainHeightDiff = hitOrigin.distance - hitTarget.distance;
+            trans.position += Vector3.up * terrainHeightDiff;
+            
             saturationTimer = _maxSaturationTime;
         }
         else
@@ -199,7 +213,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             _relDistanceToJump = 0.0f;
         }
 
-        // finally aplly the rotation
+        // finally apply the rotation
         if (_enableRotationalJumping &&
            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond &&
            saturationTimer < 0)
@@ -207,12 +221,12 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             trans.RotateAround(rotationalCenter.position, Vector3.up, _defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
 
             // reset saturation time
-            float timeModifyer = 1;
+            float timeModifier = 1;
             if (_enableDecreasingSaturationTime)
             {
-                timeModifyer += (Mathf.Abs(signedAnglePerSecond) - _rotationalJumpingThresholdDegreePerSecond) / _timeDecreasingRotationalSpeedOvershoot;
+                timeModifier += (Mathf.Abs(signedAnglePerSecond) - _rotationalJumpingThresholdDegreePerSecond) / _timeDecreasingRotationalSpeedOvershoot;
             }
-            saturationTimer = _maxSaturationTime / timeModifyer;
+            saturationTimer = _maxSaturationTime / timeModifier;
         }
         else
         {

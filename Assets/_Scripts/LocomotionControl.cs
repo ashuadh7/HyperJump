@@ -132,6 +132,7 @@ public class LocomotionControl : MonoBehaviour
     public GameObject GetHeadJoint()
     {
         return _headJoint;
+        
     }
 
     public float GetRelativDistanceToJump()
