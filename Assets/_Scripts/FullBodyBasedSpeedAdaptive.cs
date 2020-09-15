@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 {
@@ -152,7 +155,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             
             RaycastHit hit;
             int layerMask = 1 << 8; // terrain
-            Physics.Raycast(_futureCamera.transform.position + new Vector3(0,10,0), transform.TransformDirection(-Vector3.up), out hit, Mathf.Infinity,
+            Physics.Raycast(_futureCamera.transform.position + new Vector3(0,10,0), -Vector3.up, out hit, Mathf.Infinity,
                 layerMask);
             
             _spheres[i].transform.position = hit.point;   
@@ -162,35 +165,59 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     private void Translate(float deltaTime, Transform trans, ref float saturationTimer)
     {  
         saturationTimer -= deltaTime;
-        float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * _translationSpeedFactor;
-
-        // jump?
-        // TODO & no wall...
-        if (_enableTranslationalJumping &&
-          Mathf.Abs(distanceToTravel) > _translationalJumpingThresholdMeterPerSecond &&
-          saturationTimer < 0)
+        RaycastHit hit;
+        
+        if (!Physics.Raycast(trans.position, trans.forward * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y), out hit, 1f))
         {
-            RaycastHit hitOrigin, hitTarget;
-            int layerMask = 1 << 8; // terrain
-            Physics.Raycast(transform.position + new Vector3(0,10,0), transform.TransformDirection(-Vector3.up), out hitOrigin, Mathf.Infinity,
-                layerMask);
+            float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * _translationSpeedFactor;
             
-            float threshold = _translationalJumpingThresholdMeterPerSecond / _translationSpeedFactor;
-            float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
+            // jump?
+            if (_enableTranslationalJumping &&
+                Mathf.Abs(distanceToTravel) > _translationalJumpingThresholdMeterPerSecond &&
+                saturationTimer < 0)
+            {
+                // ... then calculate jump
+                Vector3 targetPosition = trans.position;
+                
+                // measuring ground level at start position
+                RaycastHit hitOrigin, hitTarget;
+                int layerMask = 1 << 8; // terrain
+                Physics.Raycast(trans.position + new Vector3(0,10,0), -Vector3.up, out hitOrigin, Mathf.Infinity,
+                    layerMask);
             
-            trans.position += normalizedAxis * _maxJumpSize * Mathf.Sign(distanceToTravel) * trans.forward;
+                // normalize jump size, because there was a deadzone and we want to start at 0
+                float threshold = _translationalJumpingThresholdMeterPerSecond / _translationSpeedFactor;
+                float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
             
-            Physics.Raycast(transform.position + new Vector3(0,10,0), transform.TransformDirection(-Vector3.up), out hitTarget, Mathf.Infinity,
-                layerMask);
+                targetPosition += normalizedAxis * _maxJumpSize * trans.forward;
+            
+                // measuring gound level at target position...
+                Physics.Raycast(targetPosition + new Vector3(0,10,0), -Vector3.up, out hitTarget, Mathf.Infinity,
+                    layerMask);
 
-            float terrainHeightDiff = hitOrigin.distance - hitTarget.distance;
-            trans.position += Vector3.up * terrainHeightDiff;
+                // to correct for the elevation
+                float terrainHeightDiff = hitOrigin.distance - hitTarget.distance;
+                targetPosition += Vector3.up * terrainHeightDiff;
             
-            saturationTimer = _maxSaturationTime;
-        }
-        else
-        {
-            trans.position += distanceToTravel * deltaTime * trans.forward;
+                // obstacle?
+                Vector3 path = targetPosition - trans.position;
+               
+                if (Physics.Raycast(trans.position, path.normalized, out hit, path.magnitude))
+                {
+                   // ...then do not jump
+                   trans.position += distanceToTravel * deltaTime * trans.forward;
+                }
+                else
+                {
+                    trans.position = targetPosition;
+                    saturationTimer = _maxSaturationTime;
+                }
+                
+            }
+            else
+            {
+                trans.position += distanceToTravel * deltaTime * trans.forward;
+            }
         }
     }
 
