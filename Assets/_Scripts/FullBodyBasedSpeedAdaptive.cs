@@ -12,6 +12,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Header("Method Settings")]
     public bool _enabledPathPrediction;
 
+    public GameObject _pathPrefab;
+
     [Tooltip("Changes the speed of forward and backward translation.")]
     public float _translationSpeedFactor;
 
@@ -61,6 +63,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private float _jumpSaturationTimer;
     private float _relDistanceToJump = 0.0f;
+    private bool _initialized = false;
 
     // path prediction
     private List<GameObject> _spheres;
@@ -87,6 +90,12 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // actual travel
         if (_locomotionControl.GetHeadJoint() != null)
         {
+            if (!_initialized)
+            {
+                _camera.GetComponentInChildren<Canvas>().transform.gameObject.SetActive(false);
+                _initialized = true;
+            }
+            
             if (_useCalibratedCenterOfRotation)
             {
                 Rotate(Time.deltaTime, this.transform, _locomotionControl.GetHeadJoint().transform, ref saturationTimeCopy);
@@ -281,19 +290,14 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // setup path
         GameObject pathPrediction = new GameObject("PathPrediction");
         pathPrediction.transform.parent = this.transform; ;
-
-        GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        sphere.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
-        sphere.transform.SetPositionAndRotation(this.transform.position, Quaternion.identity);
-        sphere.transform.parent = pathPrediction.transform;
-        Destroy(sphere.GetComponent<Collider>());
         _spheres = new List<GameObject>();
-        _spheres.Add(sphere);
-
-        for (int i = 1; i < 50; ++i)
+        
+        for (int i = 0; i < 50; ++i)
         {
-            GameObject go = Instantiate(sphere, this.transform.position, Quaternion.identity, pathPrediction.transform);
-            Destroy(go.GetComponent<Collider>());
+            GameObject go = Instantiate(_pathPrefab, this.transform.position, Quaternion.identity, pathPrediction.transform);
+            Color color = go.GetComponent<Renderer>().material.color;
+            color.a = Mathf.Lerp(0.2f, 0.0f, i/50f);
+            go.GetComponent<Renderer>().material.SetColor("_Color", color);
             _spheres.Add(go);
         }
 
