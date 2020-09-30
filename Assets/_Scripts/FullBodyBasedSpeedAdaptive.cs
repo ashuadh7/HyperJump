@@ -27,11 +27,16 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Tooltip("Gives the maximum rotational speed in degree per second.")]
     public float _maxRotationSpeed;
 
-    [Tooltip("When this mode is enabled the rotational speed is reduced with increasing travel speed.")]
-    public bool _enableMotorcycleMode;
-
     [Header("Rotational Jumping")]
     public bool _enableRotationalJumping;
+    
+    [Tooltip("Enables the jump saturation time to dencrease being futher over the threshold.")]
+    public bool _enableDecreasingSaturationTime;
+
+    [Tooltip("When decreasing saturation time is activ this gives the increase of rotational speed above the threshold to effectivly halfen the saturation time.")]
+    public float _timeDecreasingRotationalSpeedOvershoot;
+
+    [Header("Decreasing Jump Time")]
 
     [Tooltip("Defines the minimal time between two jumps.")]
     public float _maxSaturationTime;
@@ -45,16 +50,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     [Tooltip("This effectivly overrides the maximum rotational speed, when the latter is larger than this one, it is never reached.")]
     public float _rotationalJumpingThresholdDegreePerSecond;
 
-    [Header("Decreasing Jump Time")]
-    [Tooltip("Enables the jump saturation time to dencrease being futher over the threshold.")]
-    public bool _enableDecreasingSaturationTime;
-
-    [Tooltip("When decreasing saturation time is activ this gives the increase of rotational speed above the threshold to effectivly halfen the saturation time.")]
-    public float _timeDecreasingRotationalSpeedOvershoot;
-
     [Header("Translational Jumping")]
     public bool _enableTranslationalJumping;
 
+    public float _minJumpSize;
+    
     public float _maxJumpSize;
 
     public float _translationalJumpingThresholdMeterPerSecond;
@@ -198,7 +198,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 float threshold = _translationalJumpingThresholdMeterPerSecond / _translationSpeedFactor;
                 float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
             
-                targetPosition += normalizedAxis * _maxJumpSize * trans.forward;
+                targetPosition += _minJumpSize * trans.forward + normalizedAxis * (_maxJumpSize - _minJumpSize) * trans.forward;
             
                 // measuring gound level at target position...
                 Physics.Raycast(targetPosition + new Vector3(0,10,0), -Vector3.up, out hitTarget, Mathf.Infinity,
@@ -240,12 +240,6 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         {
             // leaning faster to the sides results in faster yaw rotation
             angle *= _locomotionControl.Get2DLeaningAxis().x;
-            
-            // for faster tavel speeds rotation speed is increased;
-            if(_enableMotorcycleMode)
-            {
-                angle *= (1.0f - _locomotionControl.Get2DLeaningAxis().y);
-            }  
         }
         // when slower it is the head yaw only
         else
@@ -279,10 +273,17 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             }
             saturationTimer = _maxSaturationTime / timeModifier;
         }
+        else if (_enableRotationalJumping &&
+                 Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
+                 saturationTimer > 0)
+        {
+            // no-op
+        }
         else
         {
             trans.RotateAround(rotationalCenter.position, Vector3.up, angle);
         }
+
     }
 
     private void InitPathPrediction()
@@ -296,7 +297,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         {
             GameObject go = Instantiate(_pathPrefab, this.transform.position, Quaternion.identity, pathPrediction.transform);
             Color color = go.GetComponent<Renderer>().material.color;
-            color.a = Mathf.Lerp(0.2f, 0.0f, i/50f);
+            color.a = Mathf.Lerp(0.4f, 0.0f, i/50f);
             go.GetComponent<Renderer>().material.SetColor("_Color", color);
             _spheres.Add(go);
         }
