@@ -13,31 +13,25 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     public bool _enabledPathPrediction;
 
     public GameObject _pathPrefab;
-
-    [Tooltip("Changes the speed of forward and backward translation.")]
-    public float _translationSpeedFactor;
-
-    [Tooltip("Gives the point in percent of the maximum speed where strafing is replaced by rotating.")]
+    
+    [Tooltip("Gives the point in percent of the maximum speed where rotatioal jumps are disabled.")]
     [Range(0f, 1f)]
     public float _velocityThresholdForInterfaceSwitch;
 
     [Tooltip("... or just the HMD position instead.")]
     public bool _useCalibratedCenterOfRotation;
-
-    [Tooltip("Gives the maximum rotational speed in degree per second.")]
-    public float _maxRotationSpeed;
-
+    
     [Header("Rotational Jumping")]
     public bool _enableRotationalJumping;
+    
+    [Header("Decreasing Jump Time")]
     
     [Tooltip("Enables the jump saturation time to dencrease being futher over the threshold.")]
     public bool _enableDecreasingSaturationTime;
 
     [Tooltip("When decreasing saturation time is activ this gives the increase of rotational speed above the threshold to effectivly halfen the saturation time.")]
     public float _timeDecreasingRotationalSpeedOvershoot;
-
-    [Header("Decreasing Jump Time")]
-
+    
     [Tooltip("Defines the minimal time between two jumps.")]
     public float _maxSaturationTime;
 
@@ -179,7 +173,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         // when there is no obstacle in moving direction...
         if (!Physics.Raycast(trans.position, trans.forward * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y), out hit, 1f))
         {
-            float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * _translationSpeedFactor;
+            float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * GeneralLocomotionSettings.Instance._maxTranslationSpeed;
             
             // jump?
             if (_enableTranslationalJumping &&
@@ -196,7 +190,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                     layerMask);
             
                 // normalize jump size, because there was a deadzone and we want to start at 0
-                float threshold = _translationalJumpingThresholdMeterPerSecond / _translationSpeedFactor;
+                float threshold = _translationalJumpingThresholdMeterPerSecond / GeneralLocomotionSettings.Instance._maxTranslationSpeed;
                 float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
             
                 targetPosition += Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y) * _minJumpSize * trans.forward + normalizedAxis * (_maxJumpSize - _minJumpSize) * trans.forward;
@@ -233,7 +227,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
     private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer)
     {
-        float angle = _maxRotationSpeed * deltaTime;
+        float angle = GeneralLocomotionSettings.Instance._maxRotationSpeed * deltaTime;
         
         // TODO smooth transitions between the two modi
         // when fast enough leaning controlles rotation
