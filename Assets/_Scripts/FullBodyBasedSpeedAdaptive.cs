@@ -176,6 +176,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         saturationTimer -= deltaTime;
         RaycastHit hit;
         
+        // when there is no obstacle in moving direction...
         if (!Physics.Raycast(trans.position, trans.forward * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y), out hit, 1f))
         {
             float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * _translationSpeedFactor;
@@ -198,7 +199,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 float threshold = _translationalJumpingThresholdMeterPerSecond / _translationSpeedFactor;
                 float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
             
-                targetPosition += _minJumpSize * trans.forward + normalizedAxis * (_maxJumpSize - _minJumpSize) * trans.forward;
+                targetPosition += Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y) * _minJumpSize * trans.forward + normalizedAxis * (_maxJumpSize - _minJumpSize) * trans.forward;
             
                 // measuring gound level at target position...
                 Physics.Raycast(targetPosition + new Vector3(0,10,0), -Vector3.up, out hitTarget, Mathf.Infinity,
