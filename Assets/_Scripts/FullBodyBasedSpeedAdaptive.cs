@@ -101,7 +101,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         } 
         if(!_locomotionControl.IsBraked())
         {
-            Translate(Time.deltaTime, this.transform, ref _jumpSaturationTimer);
+            Translate(Time.deltaTime, this.transform, _camera.transform, ref _jumpSaturationTimer);
         }
 
         // resync timers
@@ -151,7 +151,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref saturationTimeCopy);
             }
 
-            Translate(0.04f, _futureCameraRig.transform, ref futureRsaturatiuonTimer);
+            Translate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRsaturatiuonTimer);
             
             // resync timers
             futureRsaturatiuonTimer = Mathf.Max(saturationTimeCopy, futureRsaturatiuonTimer);
@@ -165,13 +165,24 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
     }
 
-    private void Translate(float deltaTime, Transform trans, ref float saturationTimer)
+    private void Translate(float deltaTime, Transform trans, Transform cameraTrans, ref float saturationTimer)
     {  
         saturationTimer -= deltaTime;
         RaycastHit hit;
+        Vector3 movementForward;
+
+        if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
+        {
+            movementForward = trans.forward;
+        }
+        else
+        {
+            movementForward = cameraTrans.forward;
+        }
+        
         
         // when there is no obstacle in moving direction...
-        if (!Physics.Raycast(trans.position, trans.forward * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y), out hit, 1f))
+        if (!Physics.Raycast(trans.position, movementForward * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y), out hit, 1f))
         {
             float distanceToTravel = _locomotionControl.Get2DLeaningAxis().y * GeneralLocomotionSettings.Instance._maxTranslationSpeed;
             
@@ -193,7 +204,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 float threshold = _translationalJumpingThresholdMeterPerSecond / GeneralLocomotionSettings.Instance._maxTranslationSpeed;
                 float normalizedAxis = (_locomotionControl.Get2DLeaningAxis().y - (threshold * Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y))) * 1 / (1 - threshold);
             
-                targetPosition += Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y) * _minJumpSize * trans.forward + normalizedAxis * (_maxJumpSize - _minJumpSize) * trans.forward;
+                targetPosition += Mathf.Sign(_locomotionControl.Get2DLeaningAxis().y) * _minJumpSize * movementForward + normalizedAxis * (_maxJumpSize - _minJumpSize) * trans.forward;
             
                 // measuring gound level at target position...
                 Physics.Raycast(targetPosition + new Vector3(0,10,0), -Vector3.up, out hitTarget, Mathf.Infinity,
@@ -209,7 +220,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 if (Physics.Raycast(trans.position, path.normalized, out hit, path.magnitude))
                 {
                    // ...then do not jump
-                   trans.position += distanceToTravel * deltaTime * trans.forward;
+                   trans.position += distanceToTravel * deltaTime * movementForward;
                 }
                 else
                 {
@@ -220,65 +231,68 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             }
             else
             {
-                trans.position += distanceToTravel * deltaTime * trans.forward;
+                trans.position += distanceToTravel * deltaTime * movementForward;
             }
         }
     }
 
     private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer)
     {
-        float angle = GeneralLocomotionSettings.Instance._maxRotationSpeed * deltaTime;
+        // otherwise use physical rotation only
+        if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
+        {
+            float angle = GeneralLocomotionSettings.Instance._maxRotationSpeed * deltaTime;
         
-        // TODO smooth transitions between the two modi
-        // when fast enough leaning controlles rotation
-        if (Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) >= _velocityThresholdForInterfaceSwitch)
-        {
-            // leaning faster to the sides results in faster yaw rotation
-            angle *= _locomotionControl.Get2DLeaningAxis().x;
-        }
-        // when slower it is the head yaw only
-        else
-        {
-            angle *= _locomotionControl.GetHeadYawAxis();
-        }
-
-        saturationTimer -= deltaTime;
-        float signedAnglePerSecond = angle / deltaTime;
-
-        // calculate distance to jump for the feedback
-        _relDistanceToJump = Mathf.Clamp(signedAnglePerSecond / _rotationalJumpingThresholdDegreePerSecond, -1, 1);
-        if (!_enableRotationalJumping)
-        {
-            _relDistanceToJump = 0.0f;
-        }
-
-        // finally apply the rotation
-        if (_enableRotationalJumping && 
-            Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
-            Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond && 
-            saturationTimer < 0)
-        {
-            trans.RotateAround(rotationalCenter.position, Vector3.up, _defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
-
-            // reset saturation time
-            float timeModifier = 1;
-            if (_enableDecreasingSaturationTime)
+            // TODO smooth transitions between the two modi
+            // when fast enough leaning controlles rotation
+            if (Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) >= _velocityThresholdForInterfaceSwitch)
             {
-                timeModifier += (Mathf.Abs(signedAnglePerSecond) - _rotationalJumpingThresholdDegreePerSecond) / _timeDecreasingRotationalSpeedOvershoot;
+                // leaning faster to the sides results in faster yaw rotation
+                angle *= _locomotionControl.Get2DLeaningAxis().x;
             }
-            saturationTimer = _maxSaturationTime / timeModifier;
-        }
-        else if (_enableRotationalJumping &&
-                 Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
-                 saturationTimer > 0)
-        {
-            // no-op
-        }
-        else
-        {
-            trans.RotateAround(rotationalCenter.position, Vector3.up, angle);
-        }
+            // when slower it is the head yaw only
+            else
+            {
+                angle *= _locomotionControl.GetHeadYawAxis();
+            }
 
+            saturationTimer -= deltaTime;
+            float signedAnglePerSecond = angle / deltaTime;
+
+            // calculate distance to jump for the feedback
+            _relDistanceToJump = Mathf.Clamp(signedAnglePerSecond / _rotationalJumpingThresholdDegreePerSecond, -1, 1);
+            if (!_enableRotationalJumping)
+            {
+                _relDistanceToJump = 0.0f;
+            }
+
+            // finally apply the rotation
+            if (_enableRotationalJumping && 
+                Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
+                Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond && 
+                saturationTimer < 0)
+            {
+                trans.RotateAround(rotationalCenter.position, Vector3.up, _defaultJumpSize * Mathf.Sign(signedAnglePerSecond));
+
+                // reset saturation time
+                float timeModifier = 1;
+                if (_enableDecreasingSaturationTime)
+                {
+                    timeModifier += (Mathf.Abs(signedAnglePerSecond) - _rotationalJumpingThresholdDegreePerSecond) / _timeDecreasingRotationalSpeedOvershoot;
+                }
+                saturationTimer = _maxSaturationTime / timeModifier;
+            }
+            else if (_enableRotationalJumping &&
+                     Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
+                     saturationTimer > 0)
+            {
+                // no-op
+            }
+            else
+            {
+                trans.RotateAround(rotationalCenter.position, Vector3.up, angle);
+            }
+        }
     }
 
     private void InitPathPrediction()
