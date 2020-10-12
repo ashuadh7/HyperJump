@@ -39,6 +39,8 @@ namespace Valve.VR
         
         private static SteamVR_Action_Boolean p_default_SnapTurnRight;
         
+        private static SteamVR_Action_Vector2 p_default_dash;
+        
         private static SteamVR_Action_Vibration p_default_Haptic;
         
         private static SteamVR_Action_Pose p_mixedreality_ExternalCamera;
@@ -48,6 +50,8 @@ namespace Valve.VR
         private static SteamVR_Action_Boolean p_couchPotato_CalibrateLeaning;
         
         private static SteamVR_Action_Boolean p_couchPotato_Break;
+        
+        private static SteamVR_Action_Vector2 p_couchPotato_dash;
         
         public static SteamVR_Action_Boolean default_InteractUI
         {
@@ -137,6 +141,14 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Vector2 default_dash
+        {
+            get
+            {
+                return SteamVR_Actions.p_default_dash.GetCopy<SteamVR_Action_Vector2>();
+            }
+        }
+        
         public static SteamVR_Action_Vibration default_Haptic
         {
             get
@@ -177,6 +189,14 @@ namespace Valve.VR
             }
         }
         
+        public static SteamVR_Action_Vector2 couchPotato_dash
+        {
+            get
+            {
+                return SteamVR_Actions.p_couchPotato_dash.GetCopy<SteamVR_Action_Vector2>();
+            }
+        }
+        
         private static void InitializeActionArrays()
         {
             Valve.VR.SteamVR_Input.actions = new Valve.VR.SteamVR_Action[] {
@@ -191,11 +211,13 @@ namespace Valve.VR
                     SteamVR_Actions.default_HeadsetOnHead,
                     SteamVR_Actions.default_SnapTurnLeft,
                     SteamVR_Actions.default_SnapTurnRight,
+                    SteamVR_Actions.default_dash,
                     SteamVR_Actions.default_Haptic,
                     SteamVR_Actions.mixedreality_ExternalCamera,
                     SteamVR_Actions.couchPotato_ResetPosition,
                     SteamVR_Actions.couchPotato_CalibrateLeaning,
-                    SteamVR_Actions.couchPotato_Break};
+                    SteamVR_Actions.couchPotato_Break,
+                    SteamVR_Actions.couchPotato_dash};
             Valve.VR.SteamVR_Input.actionsIn = new Valve.VR.ISteamVR_Action_In[] {
                     SteamVR_Actions.default_InteractUI,
                     SteamVR_Actions.default_Teleport,
@@ -208,10 +230,12 @@ namespace Valve.VR
                     SteamVR_Actions.default_HeadsetOnHead,
                     SteamVR_Actions.default_SnapTurnLeft,
                     SteamVR_Actions.default_SnapTurnRight,
+                    SteamVR_Actions.default_dash,
                     SteamVR_Actions.mixedreality_ExternalCamera,
                     SteamVR_Actions.couchPotato_ResetPosition,
                     SteamVR_Actions.couchPotato_CalibrateLeaning,
-                    SteamVR_Actions.couchPotato_Break};
+                    SteamVR_Actions.couchPotato_Break,
+                    SteamVR_Actions.couchPotato_dash};
             Valve.VR.SteamVR_Input.actionsOut = new Valve.VR.ISteamVR_Action_Out[] {
                     SteamVR_Actions.default_Haptic};
             Valve.VR.SteamVR_Input.actionsVibration = new Valve.VR.SteamVR_Action_Vibration[] {
@@ -232,7 +256,9 @@ namespace Valve.VR
                     SteamVR_Actions.couchPotato_Break};
             Valve.VR.SteamVR_Input.actionsSingle = new Valve.VR.SteamVR_Action_Single[] {
                     SteamVR_Actions.default_Squeeze};
-            Valve.VR.SteamVR_Input.actionsVector2 = new Valve.VR.SteamVR_Action_Vector2[0];
+            Valve.VR.SteamVR_Input.actionsVector2 = new Valve.VR.SteamVR_Action_Vector2[] {
+                    SteamVR_Actions.default_dash,
+                    SteamVR_Actions.couchPotato_dash};
             Valve.VR.SteamVR_Input.actionsVector3 = new Valve.VR.SteamVR_Action_Vector3[0];
             Valve.VR.SteamVR_Input.actionsSkeleton = new Valve.VR.SteamVR_Action_Skeleton[] {
                     SteamVR_Actions.default_SkeletonLeftHand,
@@ -246,9 +272,11 @@ namespace Valve.VR
                     SteamVR_Actions.default_HeadsetOnHead,
                     SteamVR_Actions.default_SnapTurnLeft,
                     SteamVR_Actions.default_SnapTurnRight,
+                    SteamVR_Actions.default_dash,
                     SteamVR_Actions.couchPotato_ResetPosition,
                     SteamVR_Actions.couchPotato_CalibrateLeaning,
-                    SteamVR_Actions.couchPotato_Break};
+                    SteamVR_Actions.couchPotato_Break,
+                    SteamVR_Actions.couchPotato_dash};
         }
         
         private static void PreInitActions()
@@ -264,11 +292,13 @@ namespace Valve.VR
             SteamVR_Actions.p_default_HeadsetOnHead = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/HeadsetOnHead")));
             SteamVR_Actions.p_default_SnapTurnLeft = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/SnapTurnLeft")));
             SteamVR_Actions.p_default_SnapTurnRight = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/default/in/SnapTurnRight")));
+            SteamVR_Actions.p_default_dash = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/default/in/dash")));
             SteamVR_Actions.p_default_Haptic = ((SteamVR_Action_Vibration)(SteamVR_Action.Create<SteamVR_Action_Vibration>("/actions/default/out/Haptic")));
             SteamVR_Actions.p_mixedreality_ExternalCamera = ((SteamVR_Action_Pose)(SteamVR_Action.Create<SteamVR_Action_Pose>("/actions/mixedreality/in/ExternalCamera")));
             SteamVR_Actions.p_couchPotato_ResetPosition = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/CouchPotato/in/ResetPosition")));
             SteamVR_Actions.p_couchPotato_CalibrateLeaning = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/CouchPotato/in/CalibrateLeaning")));
             SteamVR_Actions.p_couchPotato_Break = ((SteamVR_Action_Boolean)(SteamVR_Action.Create<SteamVR_Action_Boolean>("/actions/CouchPotato/in/Break")));
+            SteamVR_Actions.p_couchPotato_dash = ((SteamVR_Action_Vector2)(SteamVR_Action.Create<SteamVR_Action_Vector2>("/actions/CouchPotato/in/dash")));
         }
     }
 }

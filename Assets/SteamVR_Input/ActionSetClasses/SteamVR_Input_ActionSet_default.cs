@@ -105,6 +105,14 @@ namespace Valve.VR
             }
         }
         
+        public virtual SteamVR_Action_Vector2 dash
+        {
+            get
+            {
+                return SteamVR_Actions.default_dash;
+            }
+        }
+        
         public virtual SteamVR_Action_Vibration Haptic
         {
             get

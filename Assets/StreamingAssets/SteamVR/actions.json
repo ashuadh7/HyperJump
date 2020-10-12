@@ -50,6 +50,10 @@
       "type": "boolean"
     },
     {
+      "name": "/actions/default/in/dash",
+      "type": "vector2"
+    },
+    {
       "name": "/actions/default/out/Haptic",
       "type": "vibration"
     },
@@ -72,6 +76,10 @@
       "name": "/actions/CouchPotato/in/Break",
       "type": "boolean",
       "requirement": "optional"
+    },
+    {
+      "name": "/actions/CouchPotato/in/dash",
+      "type": "vector2"
     }
   ],
   "action_sets": [

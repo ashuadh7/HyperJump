@@ -40,5 +40,13 @@ namespace Valve.VR
                 return SteamVR_Actions.couchPotato_Break;
             }
         }
+        
+        public virtual SteamVR_Action_Vector2 dash
+        {
+            get
+            {
+                return SteamVR_Actions.couchPotato_dash;
+            }
+        }
     }
 }
