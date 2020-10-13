@@ -149,7 +149,7 @@ namespace Valve.VR.Extras
             }
             else
             {
-                pointer.transform.localScale = new Vector3(thickness, thickness, dist);
+                pointer.transform.localScale = new Vector3(0, 0, dist);
                 pointer.GetComponent<MeshRenderer>().material.color = color;
             }
             pointer.transform.localPosition = new Vector3(0f, 0f, dist / 2f);
