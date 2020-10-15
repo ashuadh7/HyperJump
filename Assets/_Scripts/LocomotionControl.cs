@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Valve.VR;
 
 public class LocomotionControl : MonoBehaviour
 {
@@ -68,7 +69,8 @@ public class LocomotionControl : MonoBehaviour
     // [Range(1f, 2f)]
     private float _exponentialTransferFunctionPower = 1.53f;
 
-
+    public SteamVR_Action_Vector2 dash;
+    public GameObject controller;
     void Start()
     {
         _forwardLeaningCM = 0;
@@ -129,7 +131,7 @@ public class LocomotionControl : MonoBehaviour
     {
         float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone) * _speedSensitivity, _exponentialTransferFunctionPower) * _speedLimit;
         _leaningAxis = _leaningAxis.normalized * velocity; 
-        
+        Debug.Log(_leaningAxis);
         if (_headYawAxis < 0 && _headYawAxis > -_headYawDeadzone || _headYawAxis > 0 && _headYawAxis < _headYawDeadzone) 
         {
             _headYawAxis = 0;
@@ -223,24 +225,35 @@ public class LocomotionControl : MonoBehaviour
 
     private void UpdateInputs()
     {
-        Vector3 diff = this.transform.InverseTransformPoint(GetHeadJoint().transform.position) - _leaningRefPosition;
-        _sidwayLeaningCM = diff.x;
-        _forwardLeaningCM = diff.z;
-
-        _headYaw = _camera.transform.localRotation.eulerAngles.y;
-        if (_headYaw > 180)
+        if (GeneralLocomotionSettings.Instance._useGamepad)
         {
-            _headYaw -= 360;
+            Vector2 m_MoveValue = dash.GetAxis(SteamVR_Input_Sources.RightHand);
+            _forwardLeaningCM  = m_MoveValue.y * controller.transform.forward.x + m_MoveValue.x* controller.transform.forward.z;
+            _sidwayLeaningCM = m_MoveValue.x * controller.transform.forward.x - m_MoveValue.y * controller.transform.forward.z;
         }
-        _headYaw -= _leaningRefOrientation.y;
-
-        _headRoll = _camera.transform.localRotation.eulerAngles.z;
-        if (_headRoll > 180)
+        else
         {
-            _headRoll -= 360;
+            Vector3 diff = this.transform.InverseTransformPoint(GetHeadJoint().transform.position) - _leaningRefPosition;
+            _sidwayLeaningCM = diff.x;
+            _forwardLeaningCM = diff.z;
+
+            _headYaw = _camera.transform.localRotation.eulerAngles.y;
+            if (_headYaw > 180)
+            {
+                _headYaw -= 360;
+            }
+            _headYaw -= _leaningRefOrientation.y;
+
+            _headRoll = _camera.transform.localRotation.eulerAngles.z;
+            if (_headRoll > 180)
+            {
+                _headRoll -= 360;
+            }
+            _headRoll -= _leaningRefOrientation.z;
+            _headRoll *= -1;
         }
-        _headRoll -= _leaningRefOrientation.z;
-        _headRoll *= -1;
+
+        
     }
 
     public void UpdateBrake(bool val)

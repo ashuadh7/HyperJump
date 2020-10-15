@@ -15,6 +15,7 @@ public class GeneralLocomotionSettings : MonoBehaviour
     
     [Tooltip("Gives the maximum rotational speed in degree per second.")]
     public float _maxRotationSpeed;
+    public bool _useGamepad;
     
     private void Awake()
     {
