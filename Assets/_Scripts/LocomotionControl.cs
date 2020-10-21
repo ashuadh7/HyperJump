@@ -131,7 +131,7 @@ public class LocomotionControl : MonoBehaviour
     {
         float velocity = Mathf.Pow(Mathf.Max(0, _leaningAxis.magnitude - _leaningForwardDeadzone) * _speedSensitivity, _exponentialTransferFunctionPower) * _speedLimit;
         _leaningAxis = _leaningAxis.normalized * velocity; 
-        Debug.Log(_leaningAxis);
+        // Debug.Log(_leaningAxis);
         if (_headYawAxis < 0 && _headYawAxis > -_headYawDeadzone || _headYawAxis > 0 && _headYawAxis < _headYawDeadzone) 
         {
             _headYawAxis = 0;

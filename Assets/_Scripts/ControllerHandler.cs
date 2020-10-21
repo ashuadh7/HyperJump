@@ -8,6 +8,11 @@ public class ControllerHandler : MonoBehaviour
     public SteamVR_Action_Boolean _calibrattion;
     public SteamVR_Action_Boolean _resetPosition;
     public SteamVR_Action_Boolean _break;
+    private bool _calibrated = false;
+    public bool calibrated
+    {
+        get {return _calibrated;}
+    }
 
     void Start()
     {
@@ -32,6 +37,7 @@ public class ControllerHandler : MonoBehaviour
         GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().FinishCenterOfRotationCalibration();
         GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().CalibrateLeaningKS();     
         Debug.Log("Finished calibration...");
+        _calibrated = true;
     }
 
     public void Reset(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)

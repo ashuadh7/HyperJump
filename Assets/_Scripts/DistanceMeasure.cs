@@ -4,7 +4,7 @@ using UnityEngine;
 using Valve.VR;
 using UnityEngine.UI;
 
-public class Translate : MonoBehaviour
+public class DistanceMeasure : MonoBehaviour
 {
     public SteamVR_Action_Vector2 dash;
     public GameObject player;
