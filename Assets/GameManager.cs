@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     private Target target;
     public GameObject controller;
     public DistanceMeasure distanceMeasure;
+    public LocomotionControl locomotionControl;
     public ControllerHandler controllerHandler;
     public GameObject[] pathTargets;
     public GameObject[] pathWaypoints;
@@ -26,10 +27,17 @@ public class GameManager : MonoBehaviour
     private bool triggerPressed = false;
     private int targetNo = 1;
     private bool pointUp;
-    public bool pointingTask;
+    private bool _pointingTask;
     private bool distanceTask;
     private bool distancePrompt;
     private bool pointToTarget;
+    private bool firstTime = true;
+    public bool pointingTask
+    {
+        get{ return _pointingTask;}
+        set{ _pointingTask = value;}
+    }
+    
 
     // Start is called before the first frame update
     void Start()
@@ -39,7 +47,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(Updater());
         pathTargets[0].SetActive(true);
         pointUp = true;
-        pointingTask = true;
+        _pointingTask = false;
         distanceTask = false;
         pointToTarget = false;
     }
@@ -49,11 +57,29 @@ public class GameManager : MonoBehaviour
     {
         while (Application.isPlaying)
         {
+            if (firstTime)
+            {
+                Debug.Log("Waiting for Calibration: " + controllerHandler.calibrated);
+                if (controllerHandler.calibrated)
+                {
+                    _pointingTask = true;
+                    firstTime = false;
+                    Debug.Log("After Calibration");
+                }
+            }
             // Pointing task manager
             if (targetNo < 6)
             {
-                if (pointingTask)
+                // Debug.Log("Waiting for pointingTask to be true");
+                if (_pointingTask)
                 {
+                    if (instruction == 0)
+                    {
+                        if (targetNo - 2 >= 0)
+                        {
+                            pathWaypoints[targetNo - 2].SetActive(false);
+                        }
+                    }
                     if (!audioPlayer.isPlaying)
                     {
                         if (pointUp && instruction < targetNo + 1)
@@ -66,7 +92,7 @@ public class GameManager : MonoBehaviour
                                 audioPlayer.Play();
                                 pointUp = false;
                                 pointToTarget = true;
-                                Debug.Log("1. Point up prompt + Instruction: " + instruction + " + Pointing Task: " + pointingTask + " + pointUp: " + pointUp + " + targetNo: " + targetNo);
+                                Debug.Log("1. Point up prompt + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp + " + targetNo: " + targetNo);
                             }
                         }
                         if (pointToTarget && instruction < targetNo + 1)
@@ -79,18 +105,18 @@ public class GameManager : MonoBehaviour
                                 audioPlayer.clip = pathInstructions[targetNo + 1 - instruction];
                                 audioPlayer.Play();
                                 pointUp = true;
-                                Debug.Log("2. Target Prompt + Instruction: " + instruction + " + Pointing Task: " + pointingTask + " + pointUp: " + pointUp + " + targetNo: " + targetNo);
+                                Debug.Log("2. Target Prompt + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp + " + targetNo: " + targetNo);
                             }
                         }
                         else if (instruction == targetNo + 1)
                         {
-                            pointingTask = false;
+                            _pointingTask = false;
                             distanceTask = true;
                             instruction = 0;
                             distancePrompt = true;
                             pointUp = true;
                             pointToTarget = false;
-                            Debug.Log("3. Pointing Task Done + Instruction: " + instruction + " + Pointing Task: " + pointingTask + " + pointUp: " + pointUp+ " + targetNo: " + targetNo);
+                            Debug.Log("3. Pointing Task Done + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp+ " + targetNo: " + targetNo);
                         }
                     }
                 }
@@ -114,7 +140,7 @@ public class GameManager : MonoBehaviour
                                 audioPlayer.clip = pathInstructions[targetNo + 1 - instruction];
                                 audioPlayer.Play();
                                 distancePrompt = false;
-                                Debug.Log("4. Target Distance + Instruction: " + instruction + " + Pointing Task: " + pointingTask + " + pointUp: " + pointUp+ " + targetNo: " + targetNo);
+                                Debug.Log("4. Target Distance + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp+ " + targetNo: " + targetNo);
                                 Debug.Log("5. Target Distance + Instruction: " + instruction + " + Distance Prompt: " + distancePrompt + " + targetNo: " + targetNo);
                             }
                             else
@@ -139,10 +165,20 @@ public class GameManager : MonoBehaviour
                         }
                         else
                         {
+                            if (targetNo != 5)
+                            {
+                                audioPlayer.clip = pathInstructions[7];
+                                audioPlayer.Play();
+                            }
                             distanceTask = false;
                             instruction = 0;
+                            if (targetNo - 1 < pathWaypoints.Length)
+                            {
+                                pathWaypoints[targetNo - 1].SetActive(true);
+                            }
                             targetNo++;
-                            Debug.Log("6. New Target + Instruction: " + instruction + " + Pointing Task: " + pointingTask + " + pointUp: " + pointUp+ " + targetNo: " + targetNo);
+                            locomotionControl.locomotionFreeze = false;
+                            Debug.Log("6. New Target + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp+ " + targetNo: " + targetNo);
                         }
                     }
                 }

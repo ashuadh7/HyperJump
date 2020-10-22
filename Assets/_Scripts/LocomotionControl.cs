@@ -64,6 +64,12 @@ public class LocomotionControl : MonoBehaviour
     private List<Vector3> _hmdForwards;
     private float _samplingFrequency = 0.1f;
     private float _samplingTimer;
+    private bool _locomotionFreeze = false;
+    public bool locomotionFreeze
+    {
+        get{return _locomotionFreeze;}
+        set{_locomotionFreeze = value;}
+    }
     
     // [Tooltip("Power of the exponetial Function")]
     // [Range(1f, 2f)]
@@ -80,7 +86,6 @@ public class LocomotionControl : MonoBehaviour
         _brake = false;
         _headYawAxis = 0;
         _calibrationRecordingEndabled = false;
-        
         _camera = GameObject.Find("Camera");
         _advancedLocomotionInterface = this.GetComponent<FullBodyBasedSpeedAdaptive>();
     }
@@ -117,7 +122,15 @@ public class LocomotionControl : MonoBehaviour
 
     public Vector2 Get2DLeaningAxis()
     {
-        return _leaningAxis;
+        if (!_locomotionFreeze)
+        {
+            return _leaningAxis;
+        }
+        else
+        {
+            return Vector2.zero;
+        }
+        
     }
 
     private void NormalizeTranslationalInputsToAxis()
