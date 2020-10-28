@@ -124,13 +124,13 @@ public class LocomotionControl : MonoBehaviour
     {
         if (!_locomotionFreeze)
         {
-            return _leaningAxis;
+            _brake = false;
         }
         else
         {
-            return Vector2.zero;
+            _brake = true;
         }
-        
+        return _leaningAxis;
     }
 
     private void NormalizeTranslationalInputsToAxis()
