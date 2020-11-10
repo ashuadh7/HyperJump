@@ -69,6 +69,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     private LocomotionControl _locomotionControl;
     private GameObject _camera;
     
+    // logging
+    private bool _jumpedThisFrame = false;
+    private float _distanceLastJump = 0f;
+
     void Start()
     {
         _locomotionControl = GetComponent<LocomotionControl>();
@@ -102,7 +106,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         } 
         if(!_locomotionControl.IsBraked())
         {
-            Translate(Time.deltaTime, this.transform, _camera.transform, ref _jumpSaturationTimer);
+            Translate(Time.deltaTime, this.transform, _camera.transform, ref _jumpSaturationTimer, false);
         }
         
         // resync timers
@@ -152,7 +156,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref saturationTimeCopy);
             }
 
-            Translate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRsaturatiuonTimer);
+            Translate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRsaturatiuonTimer, true);
             
             // resync timers
             futureRsaturatiuonTimer = Mathf.Max(saturationTimeCopy, futureRsaturatiuonTimer);
@@ -166,13 +170,18 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
     }
 
-    private void Translate(float deltaTime, Transform trans, Transform cameraTrans, ref float saturationTimer)
+    private void Translate(float deltaTime, Transform trans, Transform cameraTrans, ref float saturationTimer, bool isSimulation)
     {
         saturationTimer -= deltaTime;
         RaycastHit hit;
         Vector3 movementDirection;
         float movementAxis;
         float distanceToTravel;
+        
+        if (!isSimulation)
+        {
+            _jumpedThisFrame = false;
+        }
         
         if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
         {
@@ -230,8 +239,14 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                     // ...then do not jump
                     trans.position += distanceToTravel * deltaTime * movementDirection;
                 }
+                // ... yes jump!
                 else
                 {
+                    if (!isSimulation)
+                    {
+                        _jumpedThisFrame = true;
+                        _distanceLastJump = (targetPosition - trans.position).magnitude;
+                    }
                     trans.position = targetPosition;
                     saturationTimer = _maxSaturationTime;
                 }
