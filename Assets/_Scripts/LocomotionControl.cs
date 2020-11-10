@@ -122,14 +122,15 @@ public class LocomotionControl : MonoBehaviour
 
     public Vector2 Get2DLeaningAxis()
     {
-        if (!_locomotionFreeze)
+        // Ashu: you should not do it likes this as you are overwriting the button break :-(
+        /*if (!_locomotionFreeze)
         {
             _brake = false;
         }
         else
         {
             _brake = true;
-        }
+        }*/
         return _leaningAxis;
     }
 

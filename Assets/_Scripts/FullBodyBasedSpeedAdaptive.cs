@@ -59,6 +59,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     private float _jumpSaturationTimer;
     private float _relDistanceToJump = 0.0f;
     private bool _initialized = false;
+    
+    // should range from 0 no break to 1 full break;
+    private float _breakState = 0f;
+    private float _currentBreakingVelocity = 0f;
 
     // path prediction
     private List<GameObject> _spheres;
@@ -103,11 +107,9 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             {
                 Rotate(Time.deltaTime, this.transform, _camera.transform, ref saturationTimeCopy);
             }
-        } 
-        if(!_locomotionControl.IsBraked())
-        {
-            Translate(Time.deltaTime, this.transform, _camera.transform, ref _jumpSaturationTimer, false);
         }
+
+        Translate(Time.deltaTime, this.transform, _camera.transform, ref _jumpSaturationTimer, false);
         
         // resync timers
         _jumpSaturationTimer = Mathf.Max(saturationTimeCopy, _jumpSaturationTimer);
@@ -181,6 +183,16 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         if (!isSimulation)
         {
             _jumpedThisFrame = false;
+            float breakTarget;
+            if (_locomotionControl.IsBraked())
+            {
+                breakTarget = 1f;
+            }
+            else
+            {
+                breakTarget = 0f;
+            }
+            _breakState = Mathf.SmoothDamp(_breakState, breakTarget, ref _currentBreakingVelocity, 0.5f);
         }
         
         if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
@@ -204,7 +216,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             // jump?
             if (_enableTranslationalJumping &&
                 Mathf.Abs(distanceToTravel) > _translationalJumpingThresholdMeterPerSecond &&
-                saturationTimer < 0)
+                saturationTimer < 0 &&
+                !_locomotionControl.IsBraked())
             {
                 // ... then calculate jump
                 Vector3 targetPosition = trans.position;
@@ -237,7 +250,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 if (Physics.Raycast(trans.position, path.normalized, out hit, path.magnitude))
                 {
                     // ...then do not jump
-                    trans.position += distanceToTravel * deltaTime * movementDirection;
+                    trans.position += (1f - _breakState) * distanceToTravel * deltaTime * movementDirection;
                 }
                 // ... yes jump!
                 else
@@ -255,7 +268,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             // no jump, continues movement
             else
             {
-                trans.position += distanceToTravel * deltaTime * movementDirection;
+                trans.position += (1f - _breakState) * distanceToTravel * deltaTime * movementDirection;
             }
         }
     }
