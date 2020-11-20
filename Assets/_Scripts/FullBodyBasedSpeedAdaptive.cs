@@ -74,8 +74,10 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     private GameObject _camera;
     
     // logging
-    private bool _jumpedThisFrame = false;
-    private float _distanceLastJump = 0f;
+    private bool _Logging_jumpedThisFrame = false;
+    private float _Logging_distanceLastJump = 0f;
+    private bool _Logging_rotationalJumpThisFrame = false;
+    private float _Logging_angleOfVirtualRotationThisFrame = 0f;
 
     void Start()
     {
@@ -101,11 +103,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             
             if (_useCalibratedCenterOfRotation)
             {
-                Rotate(Time.deltaTime, this.transform, _locomotionControl.GetHeadJoint().transform, ref saturationTimeCopy);
+                Rotate(Time.deltaTime, this.transform, _locomotionControl.GetHeadJoint().transform, ref saturationTimeCopy,false);
             }
             else
             {
-                Rotate(Time.deltaTime, this.transform, _camera.transform, ref saturationTimeCopy);
+                Rotate(Time.deltaTime, this.transform, _camera.transform, ref saturationTimeCopy, false);
             }
         }
 
@@ -151,11 +153,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             
             if(_useCalibratedCenterOfRotation)
             {
-                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref saturationTimeCopy);
+                Rotate(0.04f, _futureCameraRig.transform, _futureRotationalCenter.transform, ref saturationTimeCopy, true);
             }
             else
             {
-                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref saturationTimeCopy);
+                Rotate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref saturationTimeCopy, true);
             }
 
             Translate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRsaturatiuonTimer, true);
@@ -182,7 +184,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         
         if (!isSimulation)
         {
-            _jumpedThisFrame = false;
+            _Logging_jumpedThisFrame = false;
+            _Logging_distanceLastJump = 0f;
             float breakTarget;
             if (_locomotionControl.IsBraked())
             {
@@ -257,8 +260,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                 {
                     if (!isSimulation)
                     {
-                        _jumpedThisFrame = true;
-                        _distanceLastJump = (targetPosition - trans.position).magnitude;
+                        _Logging_jumpedThisFrame = true;
+                        _Logging_distanceLastJump = (targetPosition - trans.position).magnitude;
                     }
                     trans.position = targetPosition;
                     saturationTimer = _maxSaturationTime;
@@ -273,11 +276,16 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
         }
     }
 
-    private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer)
+    private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer, bool isSimulation)
     {
         // otherwise use physical rotation only
         if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
         {
+            if (!isSimulation)
+            {
+                _Logging_rotationalJumpThisFrame = false;
+            }
+
             float angle = GeneralLocomotionSettings.Instance._maxRotationSpeed * deltaTime;
         
             // TODO smooth transitions between the two modi
@@ -304,6 +312,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             }
 
             // finally apply the rotation
+            // jump when conditions are met and timer is over
             if (_enableRotationalJumping && 
                 Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
                 Mathf.Abs(signedAnglePerSecond) > _rotationalJumpingThresholdDegreePerSecond && 
@@ -313,21 +322,28 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
 
                 // reset saturation time
                 float timeModifier = 1;
+                _Logging_rotationalJumpThisFrame = true;
+                _Logging_angleOfVirtualRotationThisFrame = _defaultJumpSize * Mathf.Sign(signedAnglePerSecond);
+                
                 if (_enableDecreasingSaturationTime)
                 {
                     timeModifier += (Mathf.Abs(signedAnglePerSecond) - _rotationalJumpingThresholdDegreePerSecond) / _timeDecreasingRotationalSpeedOvershoot;
                 }
                 saturationTimer = _maxSaturationTime / timeModifier;
             }
+            // when timer is not over do nothing
             else if (_enableRotationalJumping &&
                      Mathf.Abs(_locomotionControl.Get2DLeaningAxis().y) < _velocityThresholdForInterfaceSwitch &&
                      saturationTimer > 0)
             {
                 // no-op
+                _Logging_angleOfVirtualRotationThisFrame = 0f;
             }
+            // when conditions are not met at all or jumping is not enabled do continuous rotation
             else
             {
                 trans.RotateAround(rotationalCenter.position, Vector3.up, angle);
+                _Logging_angleOfVirtualRotationThisFrame = angle;
             }
         }
         else
