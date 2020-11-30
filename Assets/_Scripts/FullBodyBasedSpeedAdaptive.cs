@@ -178,6 +178,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     {
         saturationTimer -= deltaTime;
         RaycastHit hit;
+        int layerMask = 1 << 8; // terrain
         Vector3 movementDirection;
         float movementAxis;
         float distanceToTravel;
@@ -224,13 +225,7 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             {
                 // ... then calculate jump
                 Vector3 targetPosition = trans.position;
-
-                // measuring ground level at start position
-                RaycastHit hitOrigin, hitTarget;
-                int layerMask = 1 << 8; // terrain
-                Physics.Raycast(trans.position + new Vector3(0, 10, 0), -Vector3.up, out hitOrigin, Mathf.Infinity,
-                    layerMask);
-
+                
                 // normalize jump size, because there was a deadzone and we want to start at 0
                 float threshold = _translationalJumpingThresholdMeterPerSecond /
                                   GeneralLocomotionSettings.Instance._maxTranslationSpeed;
@@ -240,12 +235,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
                     Mathf.Sign(movementAxis) * _minJumpSize * movementDirection + normalizedAxis * (_maxJumpSize - _minJumpSize) * movementDirection;
 
                 // measuring ground level at target position...
-                Physics.Raycast(targetPosition + new Vector3(0, 10, 0), -Vector3.up, out hitTarget, Mathf.Infinity,
+                Physics.Raycast(targetPosition + new Vector3(0, 10, 0), -Vector3.up, out hit, Mathf.Infinity,
                     layerMask);
 
                 // to correct for the elevation
-                float terrainHeightDiff = hitOrigin.distance - hitTarget.distance;
-                targetPosition += Vector3.up * terrainHeightDiff;
+                targetPosition =  hit.point + _locomotionControl.PlayerToGroundOffset();
 
                 // obstacle?
                 Vector3 path = targetPosition - trans.position;
@@ -272,6 +266,11 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             else
             {
                 trans.position += (1f - _breakState) * distanceToTravel * deltaTime * movementDirection;
+                Physics.Raycast(trans.position + new Vector3(0, 10, 0), -Vector3.up, out hit, Mathf.Infinity,
+                    layerMask);
+                
+                // to correct for the elevation
+                trans.position =  hit.point + _locomotionControl.PlayerToGroundOffset();
             }
         }
     }

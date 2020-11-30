@@ -65,6 +65,10 @@ public class LocomotionControl : MonoBehaviour
     private float _samplingFrequency = 0.1f;
     private float _samplingTimer;
     private bool _locomotionFreeze = false;
+    
+    // player offset above ground
+    private Vector3 _playerOffsetAboveGround;
+    
     public bool locomotionFreeze
     {
         get{return _locomotionFreeze;}
@@ -224,6 +228,14 @@ public class LocomotionControl : MonoBehaviour
 
         Debug.Log("Head's center of yaw rotation distance to headset: " + (_camera.transform.position - centerOfYawRotationGlobal).magnitude);
         
+        // define player offset
+        RaycastHit hit;
+        int layerMask = 1 << 8; // terrain
+        Physics.Raycast(transform.position + new Vector3(0, 10, 0), -Vector3.up, out hit, Mathf.Infinity,
+            layerMask);
+        _playerOffsetAboveGround = transform.position - hit.point;
+
+
         // Debugging Visualisation 
         /*
         Debug.Log(firstTarget);
@@ -236,7 +248,11 @@ public class LocomotionControl : MonoBehaviour
         Instantiate(sphere, GameObject.Find("Camera").transform.position, Quaternion.identity, GameObject.Find("Camera").transform);*/
     }
 
-
+    public Vector3 PlayerToGroundOffset()
+    {
+        return _playerOffsetAboveGround;
+    }
+    
     private void UpdateInputs()
     {
         if (GeneralLocomotionSettings.Instance._useGamepad)
