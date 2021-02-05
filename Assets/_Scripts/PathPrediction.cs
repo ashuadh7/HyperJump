@@ -39,7 +39,7 @@ public class PathPrediction : MonoBehaviour
     {
         // setup path
         GameObject pathPrediction = new GameObject("PathPrediction");
-        pathPrediction.transform.parent = this.transform; ;
+        pathPrediction.transform.parent = this.transform;
         _spheres = new List<GameObject>();
         
         for (int i = 0; i < 50; ++i)
@@ -76,7 +76,9 @@ public class PathPrediction : MonoBehaviour
         {
             // TODO generalize
             GetComponent<HyperJump>().Translate(0.04f, _futureCameraRig.transform, _futureCamera.transform, ref futureRsaturatiuonTimer, true);
-            Vector3 spherePosition = new Vector3(_futureCamera.transform.position.x, 0, _futureCamera.transform.position.z);
+            Vector3 spherePosition = _spheres[i].transform.position;
+            spherePosition.x = _futureCameraRig.transform.position.x;
+            spherePosition.z = _futureCameraRig.transform.position.z;
             _spheres[i].transform.position = spherePosition;   
         }
     }
