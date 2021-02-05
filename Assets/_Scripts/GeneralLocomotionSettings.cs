@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ public class GeneralLocomotionSettings : MonoBehaviour
     
     [Tooltip("Gives the maximum rotational speed in degree per second.")]
     public float _maxRotationSpeed;
+
+    private bool _isBreaked;
     
     private void Awake()
     {
@@ -22,5 +25,27 @@ public class GeneralLocomotionSettings : MonoBehaviour
         } else {
             _instance = this;
         }
+    }
+    
+    private void Start()
+    {
+        _isBreaked = false;
+    }
+
+    public void ResetPlayerPosition()
+    {
+        Debug.Log("Hahahahahahaha...");
+        // TODO
+    }
+    
+
+    public bool GetIsBreaked()
+    {
+        return _isBreaked; 
+    }
+
+    public void SetBreak(bool val)
+    {
+        _isBreaked = val;
     }
 }

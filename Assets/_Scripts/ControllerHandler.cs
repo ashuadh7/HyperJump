@@ -8,12 +8,7 @@ public class ControllerHandler : MonoBehaviour
     public SteamVR_Action_Boolean _calibrattion;
     public SteamVR_Action_Boolean _resetPosition;
     public SteamVR_Action_Boolean _break;
-    private bool _calibrated = false;
-    public bool calibrated
-    {
-        get {return _calibrated;}
-    }
-
+    
     void Start()
     {
         _calibrattion.AddOnStateDownListener(StartCalibration, SteamVR_Input_Sources.Any);
@@ -28,27 +23,28 @@ public class ControllerHandler : MonoBehaviour
     // 3) keep the buttion pressed, look forward in a comfortable leaning position and release
     public void StartCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        Debug.Log("Started calibration...");
-        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().StartCenterOfRotationCalibration();
+        if (!GameObject.Find("LocomotionPlatform").GetComponent<LocomotionMethodInterface>().GetInputSource().IsInitialized())
+        {
+            GameObject.Find("LocomotionPlatform").GetComponent<LocomotionMethodInterface>().GetInputSource().StartCalibration();
+        }
     }
 
     public void FinishCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().FinishCenterOfRotationCalibration();
-        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().CalibrateLeaningKS();     
-        Debug.Log("Finished calibration...");
-        _calibrated = true;
+        if (!GameObject.Find("LocomotionPlatform").GetComponent<LocomotionMethodInterface>().GetInputSource()
+            .IsInitialized())
+        {
+            GameObject.Find("LocomotionPlatform").GetComponent<LocomotionMethodInterface>().GetInputSource().EndCalibration();
+        }
     }
 
     public void Reset(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        Debug.Log("Reset player position...");
-        GameObject.Find("LocomotionPlatform").transform.SetPositionAndRotation(new Vector3(-45, 9.3f, 27), Quaternion.identity);
+        GeneralLocomotionSettings.Instance.ResetPlayerPosition();
     }
-
-
+    
     public void Break(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState)
     {
-        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().UpdateBrake(newState);
+        GeneralLocomotionSettings.Instance.SetBreak(newState);
     }
 }
