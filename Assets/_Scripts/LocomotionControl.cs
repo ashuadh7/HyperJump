@@ -255,15 +255,7 @@ public class LocomotionControl : MonoBehaviour
     
     private void UpdateInputs()
     {
-        if (GeneralLocomotionSettings.Instance._useGamepad)
-        {
-            Vector2 m_MoveValue = dash.GetAxis(SteamVR_Input_Sources.RightHand);
-            _forwardLeaningCM  = m_MoveValue.y * controller.transform.forward.x + m_MoveValue.x* controller.transform.forward.z;
-            _sidwayLeaningCM = m_MoveValue.x * controller.transform.forward.x - m_MoveValue.y * controller.transform.forward.z;
-        }
-        else
-        {
-            Vector3 diff = this.transform.InverseTransformPoint(GetHeadJoint().transform.position) - _leaningRefPosition;
+        Vector3 diff = this.transform.InverseTransformPoint(GetHeadJoint().transform.position) - _leaningRefPosition;
             _sidwayLeaningCM = diff.x;
             _forwardLeaningCM = diff.z;
 
@@ -281,9 +273,6 @@ public class LocomotionControl : MonoBehaviour
             }
             _headRoll -= _leaningRefOrientation.z;
             _headRoll *= -1;
-        }
-
-        
     }
 
     public void UpdateBrake(bool val)

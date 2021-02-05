@@ -199,7 +199,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
             _breakState = Mathf.SmoothDamp(_breakState, breakTarget, ref _currentBreakingVelocity, 0.5f);
         }
         
-        if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
+        // use chouch potato?
+        if (false)
         {
             movementDirection = trans.forward;
             movementAxis = _locomotionControl.Get2DLeaningAxis().y;
@@ -278,7 +279,8 @@ public class FullBodyBasedSpeedAdaptive : MonoBehaviour
     private void Rotate(float deltaTime, Transform trans, Transform rotationalCenter, ref float saturationTimer, bool isSimulation)
     {
         // otherwise use physical rotation only
-        if (GeneralLocomotionSettings.Instance._useCouchPotatoInterface)
+        // use couch potato?
+        if (false)
         {
             if (!isSimulation)
             {

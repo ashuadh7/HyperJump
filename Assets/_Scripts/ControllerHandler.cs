@@ -29,13 +29,13 @@ public class ControllerHandler : MonoBehaviour
     public void StartCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
         Debug.Log("Started calibration...");
-        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().StartCenterOfRotationCalibration();
+        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().StartCenterOfRotationCalibration();
     }
 
     public void FinishCalibration(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
-        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().FinishCenterOfRotationCalibration();
-        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().CalibrateLeaningKS();     
+        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().FinishCenterOfRotationCalibration();
+        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().CalibrateLeaningKS();     
         Debug.Log("Finished calibration...");
         _calibrated = true;
     }
@@ -43,12 +43,12 @@ public class ControllerHandler : MonoBehaviour
     public void Reset(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
         Debug.Log("Reset player position...");
-        GameObject.Find("[CameraRig]").transform.SetPositionAndRotation(new Vector3(-45, 9.3f, 27), Quaternion.identity);
+        GameObject.Find("LocomotionPlatform").transform.SetPositionAndRotation(new Vector3(-45, 9.3f, 27), Quaternion.identity);
     }
 
 
     public void Break(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState)
     {
-        GameObject.Find("[CameraRig]").GetComponent<LocomotionControl>().UpdateBrake(newState);
+        GameObject.Find("LocomotionPlatform").GetComponent<LocomotionControl>().UpdateBrake(newState);
     }
 }
