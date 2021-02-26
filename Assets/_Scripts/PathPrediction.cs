@@ -46,7 +46,7 @@ public class PathPrediction : MonoBehaviour
         {
             GameObject go = Instantiate(_pathPrefab, this.transform.position, Quaternion.identity, pathPrediction.transform);
             Color color = go.GetComponent<Renderer>().material.color;
-            color.a = Mathf.Lerp(0.4f, 0.0f, i/50f);
+            color.a = Mathf.Lerp(0.4f, 0.0f, i/50.0f);
             go.GetComponent<Renderer>().material.SetColor("_Color", color);
             _spheres.Add(go);
         }
