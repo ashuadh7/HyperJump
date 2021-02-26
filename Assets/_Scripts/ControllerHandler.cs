@@ -5,14 +5,14 @@ using Valve.VR;
 
 public class ControllerHandler : MonoBehaviour
 {
-    public SteamVR_Action_Boolean _calibrattion;
+    public SteamVR_Action_Boolean _calibration;
     public SteamVR_Action_Boolean _resetPosition;
     public SteamVR_Action_Boolean _break;
     
     void Start()
     {
-        _calibrattion.AddOnStateDownListener(StartCalibration, SteamVR_Input_Sources.Any);
-        _calibrattion.AddOnStateUpListener(FinishCalibration, SteamVR_Input_Sources.Any);
+        _calibration.AddOnStateDownListener(StartCalibration, SteamVR_Input_Sources.Any);
+        _calibration.AddOnStateUpListener(FinishCalibration, SteamVR_Input_Sources.Any);
         _resetPosition.AddOnStateDownListener(Reset, SteamVR_Input_Sources.Any);
         _break.AddOnUpdateListener(Break, SteamVR_Input_Sources.Any);
     }

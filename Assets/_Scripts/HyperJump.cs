@@ -14,10 +14,7 @@ public class HyperJump : LocomotionMethodInterface
     [Header("Method Settings")]
     [Tooltip("Defines the time between two jumps.")]
     public float _jumpSaturationTime;
-    
     public float _minJumpSize;
-    public float _maxJumpSize;
-
     public float _jumpingThresholdMeterPerSecond;
     #endregion
 
@@ -98,8 +95,8 @@ public class HyperJump : LocomotionMethodInterface
                 float threshold = _jumpingThresholdMeterPerSecond /
                                   GeneralLocomotionSettings.Instance._maxTranslationSpeed;
                 float normalizedAxis = (speedAxis - (threshold * Mathf.Sign(speedAxis))) * 1 / (1 - threshold);
-
-                targetPosition += Mathf.Sign(speedAxis) * _minJumpSize * movementDirection + normalizedAxis * (_maxJumpSize - _minJumpSize) * movementDirection;
+                
+                targetPosition += Mathf.Sign(speedAxis) * _minJumpSize * movementDirection + normalizedAxis * (DetermineMaximumJumpSize() - _minJumpSize) * movementDirection;
 
                 // obstacle?
                 Vector3 path = targetPosition - trans.position;
@@ -128,6 +125,13 @@ public class HyperJump : LocomotionMethodInterface
                 trans.position += (1f - _breakState) * travelSpeed * deltaTime * movementDirection;
             }
         }
+    }
+
+    private float DetermineMaximumJumpSize()
+    {
+        // _jumpSaturationTime should never be 0!!!!
+        // maximum jump size solve equation: (_jumpSaturationTime * _jumpingThresholdMeterPerSecond + maxJumpSize) / _jumpSaturationTime = GeneralLocomotionSettings.Instance._maxTranslationSpeed
+        return GeneralLocomotionSettings.Instance._maxTranslationSpeed * _jumpSaturationTime - (_jumpSaturationTime * _jumpingThresholdMeterPerSecond);
     }
 
     public float GetSaturationTimer()
