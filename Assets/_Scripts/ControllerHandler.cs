@@ -7,14 +7,12 @@ public class ControllerHandler : MonoBehaviour
 {
     public SteamVR_Action_Boolean _calibration;
     public SteamVR_Action_Boolean _resetPosition;
-    public SteamVR_Action_Boolean _break;
-    
+
     void Start()
     {
         _calibration.AddOnStateDownListener(StartCalibration, SteamVR_Input_Sources.Any);
         _calibration.AddOnStateUpListener(FinishCalibration, SteamVR_Input_Sources.Any);
         _resetPosition.AddOnStateDownListener(Reset, SteamVR_Input_Sources.Any);
-        _break.AddOnUpdateListener(Break, SteamVR_Input_Sources.Any);
     }
 
     // the calibration procedure is as follows:
@@ -41,10 +39,5 @@ public class ControllerHandler : MonoBehaviour
     public void Reset(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource)
     {
         GeneralLocomotionSettings.Instance.ResetPlayerPosition();
-    }
-    
-    public void Break(SteamVR_Action_Boolean fromAction, SteamVR_Input_Sources fromSource, bool newState)
-    {
-        GeneralLocomotionSettings.Instance.SetBreak(newState);
     }
 }

@@ -37,15 +37,4 @@ public class GeneralLocomotionSettings : MonoBehaviour
         Debug.Log("Hahahahahahaha...");
         // TODO
     }
-    
-
-    public bool GetIsBreaked()
-    {
-        return _isBreaked; 
-    }
-
-    public void SetBreak(bool val)
-    {
-        _isBreaked = val;
-    }
 }

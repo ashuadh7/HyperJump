@@ -10,4 +10,9 @@ public abstract class LocomotionMethodInterface : MonoBehaviour
     {
         return _locomotionInput;
     }
+
+    public abstract void SetBreak(bool val);
+    public abstract bool GetBreak();
+    
+    public abstract void SetTeleport(bool val);
 }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -22,6 +23,7 @@ public class HyperJump : LocomotionMethodInterface
 
     // should range from 0 no break to 1 full break;
     private float _breakState = 0f;
+    private float _breakTarget = 0f;
     private float _currentBreakingVelocity = 0f;
     
     private GameObject _camera;
@@ -60,17 +62,8 @@ public class HyperJump : LocomotionMethodInterface
         {
             _STATE_jumpedThisFrame = false;
             _STATE_distanceLastJump = 0f;
-            float breakTarget;
             
-            if (GeneralLocomotionSettings.Instance.GetIsBreaked())
-            {
-                breakTarget = 1f;
-            }
-            else
-            {
-                breakTarget = 0f;
-            }
-            _breakState = Mathf.SmoothDamp(_breakState, breakTarget, ref _currentBreakingVelocity, 0.5f);
+            _breakState = Mathf.SmoothDamp(_breakState, _breakTarget, ref _currentBreakingVelocity, 0.5f);
         }
         
         movementDirection = new Vector3(_locomotionInput.GetDirectionAxes().y, 0, -_locomotionInput.GetDirectionAxes().x);
@@ -86,7 +79,7 @@ public class HyperJump : LocomotionMethodInterface
             if (_enableJumping &&
                 Mathf.Abs(travelSpeed) > _jumpingThresholdMeterPerSecond &&
                 saturationTimer < 0 &&
-                !GeneralLocomotionSettings.Instance.GetIsBreaked())
+                !GetBreak())
             {
                 // ... then calculate jump
                 Vector3 targetPosition = trans.position;
@@ -137,5 +130,27 @@ public class HyperJump : LocomotionMethodInterface
     public float GetSaturationTimer()
     {
         return _jumpSaturationTimer;
+    }
+
+    public override void SetBreak(bool val)
+    {
+        if (val)
+        {
+            _breakTarget = 0;
+        }
+        else
+        {
+            _breakTarget = 1;
+        }
+    }
+
+    public override bool GetBreak()
+    {
+        return _breakTarget == 1;
+    }
+
+    public override void SetTeleport(bool val)
+    {
+        _enableJumping = val;
     }
 }
