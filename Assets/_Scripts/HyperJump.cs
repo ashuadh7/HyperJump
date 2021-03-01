@@ -30,8 +30,16 @@ public class HyperJump : LocomotionMethodInterface
     
     void Start()
     {
-        // TODO do this dynamically in editor
-        _locomotionInput = GetComponent<LeaningInputAdapter>();
+        LocomotionInputAdapterInterface[] inputAdapters = GetComponents<LocomotionInputAdapterInterface>();
+        foreach (var elem in inputAdapters)
+        {
+            if (elem.enabled)
+            {
+                _locomotionInput = elem;
+                break;
+            }
+        }
+       
         _camera = GameObject.Find("Camera");
         _jumpSaturationTimer = _jumpSaturationTime;
     }

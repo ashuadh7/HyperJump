@@ -17,4 +17,6 @@ public abstract class LocomotionInputAdapterInterface : MonoBehaviour
 
     public abstract void StartCalibration();
     public abstract void EndCalibration();
+    
+    public abstract Vector3 GetCenterofRotation();
 }
