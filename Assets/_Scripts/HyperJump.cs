@@ -28,12 +28,6 @@ public class HyperJump : LocomotionMethodInterface
     
     private GameObject _camera;
     
-    // internal states for logging
-    private bool _STATE_jumpedThisFrame = false;
-    private float _STATE_distanceLastJump = 0f;
-    private bool _STATE_rotationalJumpThisFrame = false;
-    private float _STATE_angleOfVirtualRotationThisFrame = 0f;
-
     void Start()
     {
         // TODO do this dynamically in editor
