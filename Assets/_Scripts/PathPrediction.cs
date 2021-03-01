@@ -15,13 +15,21 @@ public class PathPrediction : MonoBehaviour
     GameObject _futureCamera;
     GameObject _futureRotationalCenter;
 
-    private LeaningInputAdapter _locomotionInput;
+    private LocomotionInputAdapterInterface _locomotionInput;
     private GameObject _camera;
     
     void Start()
     {
-        // TODO get axes here
-        _locomotionInput = GetComponent<LeaningInputAdapter>();
+        LocomotionInputAdapterInterface[] inputAdapters = GetComponents<LocomotionInputAdapterInterface>();
+        foreach (var elem in inputAdapters)
+        {
+            if (elem.enabled)
+            {
+                _locomotionInput = elem;
+                break;
+            }
+        }
+
         _camera = GameObject.Find("Camera");
 
         InitPathPrediction();
@@ -67,8 +75,8 @@ public class PathPrediction : MonoBehaviour
         // make a copy of the current transform, working as its prediction  
         _futureCameraRig.transform.SetPositionAndRotation(this.transform.position, this.transform.rotation);
         _futureCamera.transform.SetPositionAndRotation(_camera.transform.position, _camera.transform.rotation);
-        _futureRotationalCenter.transform.position = _locomotionInput.GetHeadJoint().transform.position;
-
+        _futureRotationalCenter.transform.position = _locomotionInput.GetCenterofRotation();
+        
         // TODO generalize
         float futureRsaturatiuonTimer = GetComponent<HyperJump>().GetSaturationTimer();
 

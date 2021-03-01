@@ -41,11 +41,19 @@ namespace Valve.VR
             }
         }
         
-        public virtual SteamVR_Action_Vector2 dash
+        public virtual SteamVR_Action_Vector2 Joystick
         {
             get
             {
-                return SteamVR_Actions.couchPotato_dash;
+                return SteamVR_Actions.couchPotato_Joystick;
+            }
+        }
+        
+        public virtual SteamVR_Action_Pose ControllerPose
+        {
+            get
+            {
+                return SteamVR_Actions.couchPotato_ControllerPose;
             }
         }
     }

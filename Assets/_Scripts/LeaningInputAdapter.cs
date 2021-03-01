@@ -272,4 +272,9 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     {
         return _methodIsCalibrated;
     }
+
+    public override Vector3 GetCenterofRotation()
+    {
+        return GetHeadJoint().transform.position;
+    }
 }
