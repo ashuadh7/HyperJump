@@ -85,7 +85,7 @@
     {
       "name": "/actions/CouchPotato/in/ControllerPose",
       "type": "pose",
-      "requirement": "mandatory"
+      "requirement": "optional"
     }
   ],
   "action_sets": [
