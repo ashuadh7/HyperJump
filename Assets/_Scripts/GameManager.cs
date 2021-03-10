@@ -114,7 +114,10 @@ public class GameManager : MonoBehaviour
     private bool _pointingTask = false;
     private bool distanceTask = false;
     private bool _showDistanceMeasurement;
-    public bool showDistanceMeasurement;
+    public bool showDistanceMeasurement
+    {
+        get {return _showDistanceMeasurement;}
+    }
     private bool pointingTask;
     private bool firstTime = true;
     private bool shufflePointingList = true;
@@ -310,6 +313,7 @@ public class GameManager : MonoBehaviour
                                     measurementCone.SetActive(true);
                                     triggerPressed = true;
                                     recordControllerInfoWhilePointing();
+                                    Debug.Log("Measuring Distance...");
                                 }
                                 if (triggerPressed)
                                 {
@@ -326,6 +330,7 @@ public class GameManager : MonoBehaviour
                                         motionSicknessPrompt = true;
                                         measurementCone.SetActive(false);
                                         thinPointLaser.SetActive(false);
+                                        Debug.Log("Distance Measured; Next target");
                                     }
                                 }
                             }
@@ -350,7 +355,7 @@ public class GameManager : MonoBehaviour
                             SSQpointer.transform.localPosition = new Vector3(0,scaleFMS,0);   
                             FMSValue = 100 - 50 * (scaleFMS + 1);    
                             txt.text = (FMSValue).ToString("F0");
-                            // if (distanceMeasurement.interactWithUI != null && distanceMeasurement.interactWithUI.GetState(distanceMeasurement.pose.inputSource))
+                            if (distanceMeasurement.interactWithUI != null && distanceMeasurement.interactWithUI.GetState(distanceMeasurement.pose.inputSource))
                             {
                                 SSQbar.SetActive(false);
                                 instruction++;

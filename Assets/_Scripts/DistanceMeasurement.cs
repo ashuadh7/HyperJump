@@ -14,15 +14,12 @@ public class DistanceMeasurement : MonoBehaviour
     [SerializeField]
     private GameObject cone;
 
-    [SerializeField]
-    private SteamVR_Action_Boolean interactWithUI = SteamVR_Input.GetBooleanAction("InteractionUI");
-    [SerializeField]
-    private SteamVR_Behaviour_Pose pose;
+    public SteamVR_Action_Boolean interactWithUI = SteamVR_Input.GetBooleanAction("InteractionUI");
+    public SteamVR_Behaviour_Pose pose;
     [SerializeField]
     private GameObject UI;
     [SerializeField]
     private GameManager gameManager;
-    [SerializeField]
     private Text txt;
     [SerializeField]
     private float multiplier;
@@ -58,14 +55,16 @@ public class DistanceMeasurement : MonoBehaviour
     {
         if (interactWithUI != null && interactWithUI.GetState(pose.inputSource))
         {
+            // Debug.Log("Trigger Pressed");
             _distanceMeasurementStart = true;
             UI.SetActive(true);
             _distanceEstimate = (cone.transform.position - this.transform.position).magnitude;
-            if (gameManager.showDistanceMeasurement && distanceEstimate < 10)
+            // Debug.Log("Distance Estimate: " + _distanceEstimate);
+            if (gameManager.showDistanceMeasurement && _distanceEstimate < 10)
             {
                 txt.text = ((cone.transform.position - this.transform.position).magnitude).ToString("F1") + "m";
             }
-            else if (gameManager.showDistanceMeasurement && distanceEstimate > 10)
+            else if (gameManager.showDistanceMeasurement && _distanceEstimate > 10)
             {
                 txt.text = ((cone.transform.position - this.transform.position).magnitude).ToString("F0") + "m";
 
