@@ -20,7 +20,7 @@
 /// Single Pass Stereo Support by Unity Forum User "Abnormalia_"
 /// https://forum.unity.com/members/abnormalia_.356336/ 
 /// 
-Shader "VolumetricLine/SingleLine-LightSaber" {
+Shader "VolumetricLine/LineStrip-LightSaber" {
 	Properties {
 		[NoScaleOffset] _MainTex ("Base (RGB)", 2D) = "white" {}
 		_LineWidth ("Line Width", Range(0.01, 100)) = 1.0
@@ -57,7 +57,7 @@ Shader "VolumetricLine/SingleLine-LightSaber" {
 				// tell the cginc file that this is a simplified version of the shader:
 				#define LIGHT_SABER_MODE_ON
 
-				#include "_SingleLineShader.cginc"
+				#include "_LineStripShader.cginc"
 			ENDCG
 		}
 	}
