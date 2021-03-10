@@ -19,10 +19,7 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     public float _headYawMaxAngle;
 
     [Tooltip("Define the distance from center which results in maximum axis deviation.")]
-    public float _leaningForwardMaximumCM;
-
-    [Tooltip("Define the distance from center which results in maximum axis deviation.")]
-    public float _leaningSidewayMaximumCM;
+    public float _leaningMaximumCM;
     
     [Tooltip("Sensitivity of leaning (inside the exponential function)")]
     [Range(0f, 5f)]
@@ -36,12 +33,8 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     private GameObject _camera;
 
     private Vector3 _leaningRefPosition = Vector3.zero;
-    private Vector3 _leaningRefOrientation = Vector3.zero;
-
-    private float _forwardLeaningCM;
-
-    // left being negative
-    private float _sidwayLeaningCM; 
+    private float _viewDirectionOffset = 0;
+    private Vector3 _leaningCameraRefOrientation = Vector3.zero;
     
     // ranging between -180 (left) and +180
     private float _headYaw;
@@ -51,7 +44,7 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     // ranging between -180 (left) and +180
     private float _headRoll;
 
-    private Vector2 _leaningAxis = Vector2.zero;
+    private Vector3 _leaningAxis = Vector3.zero;
 
     // center of rotation calibration
     private bool _methodIsCalibrated;
@@ -69,8 +62,6 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     void Start()
     {
         _methodIsCalibrated = false;
-        _forwardLeaningCM = 0;
-        _sidwayLeaningCM = 0;
         _headYaw = 0;
         _headRoll = 0;
         _headYawAxis = 0;
@@ -115,8 +106,8 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     private void UpdateLeaning()
     {
         Vector3 diff = this.transform.InverseTransformPoint(GetHeadJoint().transform.position) - _leaningRefPosition;
-        _sidwayLeaningCM = diff.x;
-        _forwardLeaningCM = diff.z;
+        diff = this.transform.TransformDirection(diff);
+        _leaningAxis = Vector3.ProjectOnPlane(diff, Vector3.up);
     }
 
     private void UpdateHeadYaw()
@@ -126,7 +117,7 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
         {
             _headYaw -= 360;
         }
-        _headYaw -= _leaningRefOrientation.y;
+        _headYaw -= _leaningCameraRefOrientation.y;
     }
     
     public float GetHeadYaw()
@@ -141,7 +132,7 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
         {
             _headRoll -= 360;
         }
-        _headRoll -= _leaningRefOrientation.z;
+        _headRoll -= _leaningCameraRefOrientation.z;
         _headRoll *= -1;
     }
     
@@ -152,8 +143,8 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     
     private void NormalizeInputsToAxes()
     {
-        _leaningAxis.y = Mathf.Clamp(_forwardLeaningCM / _leaningForwardMaximumCM, -1, 1);
-        _leaningAxis.x = Mathf.Clamp(_sidwayLeaningCM / _leaningSidewayMaximumCM, -1, 1);
+        _leaningAxis.x = Mathf.Clamp(_leaningAxis.x / _leaningMaximumCM, -1, 1);
+        _leaningAxis.z = Mathf.Clamp(_leaningAxis.z / _leaningMaximumCM, -1, 1);
         _headYawAxis = Mathf.Clamp(_headYaw / _headYawMaxAngle, -1, 1);
     }
     
@@ -175,7 +166,7 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
         }
     }
 
-    public override Vector2 GetDirectionAxes()
+    public override Vector3 GetDirectionAxes()
     {
         return _leaningAxis;
     }
@@ -240,21 +231,21 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     private void CalibrateLeaningKS()
     {
         _leaningRefPosition = this.transform.InverseTransformPoint(GetHeadJoint().transform.position);
-        _leaningRefOrientation = _camera.transform.localRotation.eulerAngles;
+        _leaningCameraRefOrientation = _camera.transform.localRotation.eulerAngles;
 
-        if (_leaningRefOrientation.x > 180)
+        if (_leaningCameraRefOrientation.x > 180)
         {
-            _leaningRefOrientation.x -= 360;
+            _leaningCameraRefOrientation.x -= 360;
         }
 
-        if (_leaningRefOrientation.y > 180)
+        if (_leaningCameraRefOrientation.y > 180)
         {
-            _leaningRefOrientation.y -= 360;
+            _leaningCameraRefOrientation.y -= 360;
         }
 
-        if (_leaningRefOrientation.z > 180)
+        if (_leaningCameraRefOrientation.z > 180)
         {
-            _leaningRefOrientation.z -= 360;
+            _leaningCameraRefOrientation.z -= 360;
         }
         
         _isInitialized = true;

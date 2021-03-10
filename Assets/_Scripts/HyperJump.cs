@@ -68,13 +68,14 @@ public class HyperJump : LocomotionMethodInterface
             _breakState = Mathf.SmoothDamp(_breakState, _breakTarget, ref _currentBreakingVelocity, 0.5f);
         }
         
-        movementDirection = new Vector3(_locomotionInput.GetDirectionAxes().y, 0, -_locomotionInput.GetDirectionAxes().x);
-        movementDirection.Normalize();
-        speedAxis = _locomotionInput.GetDirectionAxes().magnitude;
+        movementDirection = _locomotionInput.GetDirectionAxes();
+        speedAxis = Mathf.Max(Mathf.Abs(_locomotionInput.GetDirectionAxes().x), Mathf.Abs(_locomotionInput.GetDirectionAxes().z));
         travelSpeed =  speedAxis * GeneralLocomotionSettings.Instance._maxTranslationSpeed;
+        Debug.Log(travelSpeed);
+        
         
         // when there is no obstacle in moving direction...
-        if (!Physics.Raycast(trans.position, movementDirection * Mathf.Sign(speedAxis),
+        if (!Physics.Raycast(trans.position, movementDirection,
             out hit, 1f))
         {
             // jump?
@@ -89,9 +90,9 @@ public class HyperJump : LocomotionMethodInterface
                 // normalize jump size, because there was a deadzone and we want to start at 0
                 float threshold = _jumpingThresholdMeterPerSecond /
                                   GeneralLocomotionSettings.Instance._maxTranslationSpeed;
-                float normalizedAxis = (speedAxis - (threshold * Mathf.Sign(speedAxis))) * 1 / (1 - threshold);
+                float normalizedAxis = (speedAxis - threshold) * 1 / (1 - threshold);
                 
-                targetPosition += Mathf.Sign(speedAxis) * _minJumpSize * movementDirection + normalizedAxis * (DetermineMaximumJumpSize() - _minJumpSize) * movementDirection;
+                targetPosition += _minJumpSize * movementDirection + normalizedAxis * (DetermineMaximumJumpSize() - _minJumpSize) * movementDirection;
 
                 // obstacle?
                 Vector3 path = targetPosition - trans.position;

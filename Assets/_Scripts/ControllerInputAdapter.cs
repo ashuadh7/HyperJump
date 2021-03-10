@@ -19,7 +19,7 @@ public class ControllerInputAdapter : LocomotionInputAdapterInterface
     
     private const float ExponentialTransferFunctionPower = 1.53f;
     
-    private Vector2 _axes = Vector2.zero;
+    private Vector3 _axes = Vector3.zero;
 
     private GameObject _camera;
 
@@ -39,8 +39,9 @@ public class ControllerInputAdapter : LocomotionInputAdapterInterface
     private void UpdateInputs()
     {
         Vector3 joystickTo3D = new Vector3( _joystickAxes.axis.x, 0,  _joystickAxes.axis.y);
-        joystickTo3D = _controllerPose.localRotation * joystickTo3D;
-       _axes = new Vector2(joystickTo3D.x, joystickTo3D.z).normalized * _joystickAxes.axis.magnitude;
+        joystickTo3D = this.transform.rotation * _controllerPose.localRotation * joystickTo3D;
+        joystickTo3D = Vector3.ProjectOnPlane(joystickTo3D, Vector3.up);
+       _axes = joystickTo3D.normalized * _joystickAxes.axis.magnitude;
     }
     
     private void ApplyTransferFunctionsToAxes()
@@ -49,7 +50,7 @@ public class ControllerInputAdapter : LocomotionInputAdapterInterface
         _axes = _axes.normalized * velocity; 
     }
     
-    public override Vector2 GetDirectionAxes()
+    public override Vector3 GetDirectionAxes()
     {
         return _axes;
     }

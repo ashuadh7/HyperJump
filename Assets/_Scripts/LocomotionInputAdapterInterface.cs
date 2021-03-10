@@ -8,7 +8,7 @@ public abstract class LocomotionInputAdapterInterface : MonoBehaviour
 {
     protected bool _isInitialized = false;
 
-    public abstract Vector2 GetDirectionAxes();
+    public abstract Vector3 GetDirectionAxes();
 
     public bool IsInitialized()
     {
