@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System.Security.Cryptography;
+using UnityEngine.UI;
 
 
 public class GameManager : MonoBehaviour
@@ -26,6 +27,12 @@ public class GameManager : MonoBehaviour
     private GameObject thinPointLaser, measurementCone;
     [SerializeField]
     private GameObject pointerAnimationObject, m_shotPrefab;
+     [SerializeField]
+    private GameObject SSQpointer;
+    [SerializeField]
+    private GameObject SSQbar;
+    [SerializeField]
+    private GameObject SSQUI;
     [SerializeField]
     private AudioSource audioPlayer;
     [SerializeField]
@@ -35,7 +42,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private AudioClip pointUpDing;
     [SerializeField]
-    private AudioClip pointedTargetDing, distanceMeasurementDing;
+    private AudioClip pointedTargetDing, distanceMeasurementDing;    
+    private Text txt;
     
 
 
@@ -46,7 +54,7 @@ public class GameManager : MonoBehaviour
     private HyperJump hyperJump; // use for get and set brake
     [SerializeField]
     private DistanceMeasurement distanceMeasurement; // use for get and set brake
-
+    private LeaningInputAdapter leaningInputAdapter;
 
 
 
@@ -84,11 +92,11 @@ public class GameManager : MonoBehaviour
     private List<float>[] pointingErrorListYaw = new List<float>[3];
     private List<float>[] pointingErrorListPitch = new List<float>[3];
     private List<float>[] pointingTimeList = new List<float>[3];
-    private float lastWayPointTime, totalJumpDistanceBetweenWaypoints, totalAngularJumpBetweenWaypoints;
+    private float lastWayPointTime = 0, totalJumpDistanceBetweenWaypoints = 0, totalAngularJumpBetweenWaypoints = 0;
     private float timeToPoint;
     private float FMSValue;
-    private int noOfTranslationalJumpsBetweenWaypoints, noOfRotationalJumpsBetweenWaypoints;
-    private Vector3 lastWayPointLocation, sumOfVelocityBetweenWaypointsWithoutJump;    
+    private int noOfTranslationalJumpsBetweenWaypoints = 0, noOfRotationalJumpsBetweenWaypoints = 0;
+    private Vector3 lastWayPointLocation, sumOfVelocityBetweenWaypointsWithoutJump = Vector3.zero;    
     private float wayPointshortestDistance, wayPointTime;
     private Vector3 wayPointLocation, playerPositionwhileCrossingWaypoint;
     private float controllerVelocity = 0f;
@@ -99,12 +107,18 @@ public class GameManager : MonoBehaviour
     private bool triggerPressed = false;
     private int totalTargetInstance = 2;             
     private int noOfPointings = 1;
-    private bool pointUp;
-    private bool _pointingTask;
-    private bool distanceTask;
+    private bool pointUp = true;
+    private bool pointToTarget = false;
+    private bool _pointingTask = false;
+    private bool distanceTask = false;
     private bool _showDistanceMeasurement;
     public bool showDistanceMeasurement;
     private bool pointingTask;
+    private bool firstTime = true;
+    private bool shufflePointingList = true;
+    private bool distancePrompt = false;
+    private bool measure2ndPointing = false;
+    private bool motionSicknessPrompt = false;
 
     //=======================variables for waypoint data========================//
     private bool _writeWayPointData = false;
@@ -117,11 +131,293 @@ public class GameManager : MonoBehaviour
     private int waypointID = 0;
     private float timeSpentHighSpeed = 0, distanceTravelledHighSpeed = 0, totalDistanceTravelledBetweenWaypoints = 0, averageVelocityHighSpeed = 0, averageVelocityNormalSpeed = 0, frameHighSpeed = 0, frameNormalSpeed = 0;
     private float travelLookAngle = 0;
+    private int CONTROLLERVELOCITYAVERAGEFRAME = 2;
    
     void Start()
     {
+        audioPlayer = GetComponent<AudioSource>();
+        pointers[0].SetActive(true);
         dateAndTime = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        
+        Vector3 targetDirection = convertToSpherical(pathTargets[0].transform.position - vrCamera.transform.position);
+        this.gameObject.transform.eulerAngles = new Vector3 (this.gameObject.transform.eulerAngles.x, targetDirection.y, this.gameObject.transform.eulerAngles.z);
+        controllerVelocitys = new float[CONTROLLERVELOCITYAVERAGEFRAME];
+        hyperJump.SetBreak(true);
+
+        // Load and create file for writing data
+        loadParticipantData();
+        createFileForPointingData();
+        createFileForWayPointData();
+
+        // Reset variables at the start
+        lastWayPointLocation = vrCamera.transform.position;
+        pointerAnimationObject.SetActive(false);
+        txt = SSQUI.GetComponent<Text>();
+        for (int i = 0; i < 3; i++)
+        {
+            pointingErrorListYaw[i] = new List<float>();
+            pointingErrorListPitch[i] = new List<float>();
+            pointingTimeList[i] = new List<float>();
+        }
+        StartCoroutine(Updater());
+        StartCoroutine(ControllerVeloctiy());        
+    }
+
+    IEnumerator Updater()
+    {
+        while (Application.isPlaying)
+        {
+            float controllerVelocityAverage = calculateControllerVelocityAverage();
+            if (firstTime)
+            {
+                if (leaningInputAdapter.IsCalibrated())
+                {
+                    _pointingTask = true;
+                    firstTime = false;
+                    Debug.Log("After Calibration");
+                }
+            }
+
+            // Pointing task Manager
+            if (totalTargetInstance < 7)
+            {
+                // "Waiting for pointingTask to be true"
+                // Triggered by the last waypoint collision
+                if (_pointingTask)
+                {
+                    if (shufflePointingList)
+                    {
+                        ShufflePointingListFunction();
+                        shufflePointingList = false;
+                    }
+                    if (instruction == 0)
+                    {
+                        if (totalTargetInstance - 3 >= 0 && totalTargetInstance!=6 && totalTargetInstance!=7)
+                        {
+                            pathWaypoints[totalTargetInstance - 3].SetActive(false);
+                        }
+                    }
+                    if (!audioPlayer.isPlaying)
+                    {
+                        if (pointUp && ((totalTargetInstance != 6 && instruction < totalTargetInstance + 1)|| (totalTargetInstance == 6 && instruction < totalTargetInstance)))
+                        {
+                            timeToPoint += Time.deltaTime;
+                            // Debug.Log("Waiting to point Target");
+                            if (((Mathf.Abs(controller.transform.eulerAngles.x) > 320 || Mathf.Abs(controller.transform.eulerAngles.x) < 45)) || instruction == 0)
+                            {
+                                thinPointLaser.SetActive(true);
+                                if (controllerVelocityAverage < .05f)
+                                {
+                                    if (instruction != 0)
+                                    {
+                                        shootRay();
+                                        pointerAnimationObject.SetActive(false);
+                                        controllerAudioPlayer.clip = pointedTargetDing;
+                                        controllerAudioPlayer.Play();
+
+                                        writePointingData(0);
+                                        timeToPoint = 0;
+                                        noOfPointings++;
+                                    }
+                                    thinPointLaser.SetActive(false);
+                                    instruction++;
+                                    // Debug.Log("Instruction No: " + instruction + ", Target No: " + totalTargetInstance);
+                                    audioPlayer.clip = pathInstructions[0];
+                                    if ((totalTargetInstance != 6 && instruction < totalTargetInstance + 1) || (totalTargetInstance == 6 && instruction < totalTargetInstance)) audioPlayer.Play();
+                                    
+                                    pointUp = false;
+                                    pointToTarget = true;
+                                }
+                                // Debug.Log("1. Point up prompt + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp + " + totalTargetInstance: " + totalTargetInstance);
+                            }
+
+                        }
+                        else if (((Mathf.Abs(controller.transform.eulerAngles.x) < 320 && Mathf.Abs(controller.transform.eulerAngles.x) > 45)))
+                        {
+                            thinPointLaser.SetActive(false);
+                        }
+                    }
+                    if (pointToTarget && ((totalTargetInstance != 6 && instruction < totalTargetInstance + 1) || (totalTargetInstance == 6 && instruction < totalTargetInstance)))
+                    {
+                        // Debug.Log("Waiting to point up");
+                        if (Mathf.Abs(controller.transform.eulerAngles.x) > 250 && Mathf.Abs(controller.transform.eulerAngles.x) < 290)
+                        {
+                            StartCoroutine(pointUpAnimation());
+                            controllerAudioPlayer.clip = pointUpDing;
+                            controllerAudioPlayer.Play();
+                            pointToTarget = false;
+                            yield return new WaitForSeconds(.5f);                                
+                            audioPlayer.clip = pathInstructions[instruction];
+                            audioPlayer.Play();
+                            pointUp = true;
+                            // Debug.Log("2. Target Prompt + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp + " + totalTargetInstance: " + totalTargetInstance + + pathInstructions[totalTargetInstance + 1 - instruction]);
+                        }
+                    }
+                    else if (((instruction == totalTargetInstance + 1) && (totalTargetInstance != 6))|| ((instruction == totalTargetInstance) && (totalTargetInstance == 6)))
+                    {
+                        _pointingTask = false;
+                        distanceTask = true;
+                        instruction = 0;
+                        distancePrompt = true;
+                        pointUp = true;
+                        pointToTarget = false;
+                        // Debug.Log("3. Pointing Task Done + Instruction: " + instruction + " + Pointing Task: " + _pointingTask + " + pointUp: " + pointUp+ " + totalTargetInstance: " + totalTargetInstance);
+                    }
+                }
+                if (distanceTask)
+                {
+                    // Debug.Log("Instruction: " + instruction + ", Target No:" + totalTargetInstance);
+                    if (!audioPlayer.isPlaying)
+                    {
+                        if(instruction == 0)
+                        {
+                            yield return new WaitForSeconds(.5f);
+                            audioPlayer.clip = pathInstructions[6];
+                            audioPlayer.Play();
+                            instruction++;
+                        }
+                        else if (((instruction < totalTargetInstance + 1) && (totalTargetInstance != 6)) || ((instruction < totalTargetInstance) && (totalTargetInstance == 6)))
+                        {
+                            _showDistanceMeasurement = true;
+                            if (distancePrompt)
+                            {
+                                yield return new WaitForSeconds(.5f);
+                                audioPlayer.clip = pathInstructions[instruction];
+                                audioPlayer.Play();
+                                distancePrompt = false;
+                                measure2ndPointing = true;
+                            }
+                            else
+                            {
+                                timeToPoint += Time.deltaTime;
+                                if (((Mathf.Abs(controller.transform.eulerAngles.x) > 320 || Mathf.Abs(controller.transform.eulerAngles.x) < 30)))
+                                {
+                                    thinPointLaser.SetActive(true);
+                                }
+                                else
+                                {
+                                    thinPointLaser.SetActive(false);
+                                }
+                                if (distanceMeasurement.distanceMeasurementStart)
+                                {
+                                    if (measure2ndPointing)
+                                    {
+                                        writePointingData(1);
+                                        noOfPointings++;
+                                        measure2ndPointing = false;
+                                    }
+                                    measurementCone.SetActive(true);
+                                    triggerPressed = true;
+                                    recordControllerInfoWhilePointing();
+                                }
+                                if (triggerPressed)
+                                {
+                                    if (!distanceMeasurement.distanceMeasurementStart)
+                                    {
+                                        controllerAudioPlayer.clip = distanceMeasurementDing;
+                                        controllerAudioPlayer.Play();
+                                        writePointingData(2);
+                                        noOfPointings++;
+                                        timeToPoint = 0;
+                                        instruction++;
+                                        distancePrompt = true;
+                                        triggerPressed = false;
+                                        motionSicknessPrompt = true;
+                                        measurementCone.SetActive(false);
+                                        thinPointLaser.SetActive(false);
+                                    }
+                                }
+                            }
+                        } 
+                        else if  (((instruction == totalTargetInstance + 1) && (totalTargetInstance != 6)) || ((instruction == totalTargetInstance) && (totalTargetInstance == 6)))
+                        {
+                            thinPointLaser.SetActive(false);
+                            _showDistanceMeasurement = false;
+                            if (motionSicknessPrompt)
+                            {
+                                audioPlayer.clip = pathInstructions[8];
+                                audioPlayer.Play();
+                                motionSicknessPrompt = false;
+                            }
+                            SSQbar.SetActive(true);
+                            Vector2 cameraForward = new Vector2(vrCamera.transform.forward.x, vrCamera.transform.forward.z);
+                            Vector2 controllerForward = new Vector2(controller.transform.forward.x, controller.transform.forward.z);
+                            float forwardAngle = Vector2.SignedAngle(cameraForward, controllerForward);
+                            float scaleFMS = (forwardAngle + 30)/30  - 1;
+                            if (scaleFMS > 1) scaleFMS = 1;
+                            if (scaleFMS < -1) scaleFMS = -1;
+                            SSQpointer.transform.localPosition = new Vector3(0,scaleFMS,0);   
+                            FMSValue = 100 - 50 * (scaleFMS + 1);    
+                            txt.text = (FMSValue).ToString("F0");
+                            // if (distanceMeasurement.interactWithUI != null && distanceMeasurement.interactWithUI.GetState(distanceMeasurement.pose.inputSource))
+                            {
+                                SSQbar.SetActive(false);
+                                instruction++;
+                            }
+                        }
+                        else
+                        {
+                            if (totalTargetInstance != 6)
+                            {
+                                audioPlayer.clip = pathInstructions[7];
+                                audioPlayer.Play();
+                            }
+                            writePointDataAverageFile();
+                            // restart locomotion
+                            distanceTask = false;
+                            shufflePointingList = true;
+                            instruction = 0;
+                            if (totalTargetInstance - 2 < pathWaypoints.Length)
+                            {
+                                pathWaypoints[totalTargetInstance - 2].SetActive(true);
+                                pointers[totalTargetInstance - 2].SetActive(false);
+                                pointers[totalTargetInstance - 1].SetActive(true);
+                                pointers[0].SetActive(false);
+                            }
+                            totalTargetInstance++;
+                            hyperJump.SetBreak(false);
+
+                            //reset values for waypoints
+                            lastWayPointTime = Time.time;
+                            lastWayPointLocation = vrCamera.transform.position;
+                            noOfRotationalJumpsBetweenWaypoints = 0;
+                            noOfTranslationalJumpsBetweenWaypoints = 0;
+                            totalJumpDistanceBetweenWaypoints = 0;
+                            totalAngularJumpBetweenWaypoints = 0;
+                            sumOfVelocityBetweenWaypointsWithoutJump = Vector3.zero;
+                            waypointID = 0;
+
+                            // Reset Pointing Error List
+                            for (int i = 0; i < 3; i++)
+                            {
+                                pointingErrorListYaw[i] = new List<float>();
+                                pointingErrorListPitch[i] = new List<float>();
+                                pointingTimeList[i] = new List<float>();
+
+                            }
+                        }
+            
+                    }
+                
+                }
+            
+            }
+            else
+            {
+                if (writeData)
+                {
+                    pointingDataFile.Close();
+                    participantDataFile.Close();
+                }
+                participantDataFileisOpen = false;
+                Application.Quit();
+            }
+
+            yield return null; 
+        }
+        pointingDataFile.Close();
+        participantDataFile.Close();
+        participantDataFileisOpen = false;
+
     }
 
     //=====================Update Info============================//
@@ -140,11 +436,11 @@ public class GameManager : MonoBehaviour
         // jumping frame or not
         if (hyperJumpOn)
         {
-            if (fullBodyBasedSpeedAdaptive.jumpedTranslationalThisFrame)
+            if (hyperJump._STATE_jumpedThisFrame)
             {
                 teleportTranslational = "Teleport";
                 noOfTranslationalJumpsBetweenWaypoints++;
-                totalJumpDistanceBetweenWaypoints += fullBodyBasedSpeedAdaptive.distanceLastJump;
+                totalJumpDistanceBetweenWaypoints += hyperJump._STATE_distanceLastJump;
                 frameHighSpeed++;
             }
             else
@@ -172,11 +468,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
-         if (hyperJumpRotationOn)
+        if (hyperJump._STATE_rotationalJumpThisFrame)
         {
             teleportRotational = "Teleport";
             noOfRotationalJumpsBetweenWaypoints++;
-            totalAngularJumpBetweenWaypoints += fullBodyBasedSpeedAdaptive.angleLastJump;
+            totalAngularJumpBetweenWaypoints += hyperJump._STATE_angleOfVirtualRotationThisFrame;
 
         }
         else
