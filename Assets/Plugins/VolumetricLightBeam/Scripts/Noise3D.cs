@@ -54,7 +54,7 @@ namespace VLB
         [RuntimeInitializeOnLoadMethod]
         static void OnStartUp()
         {
-            // LoadIfNeeded();
+            LoadIfNeeded();
         }
 #endif
 
@@ -66,53 +66,52 @@ namespace VLB
                 Object.DestroyImmediate(ms_NoiseTexture);
                 ms_NoiseTexture = null;
             }
-            // LoadIfNeeded();
+            LoadIfNeeded();
         }
 #endif
 
-        // public static void LoadIfNeeded()
-        // {
-        //     if (!isSupported) return;
+        public static void LoadIfNeeded()
+        {
+            if (!isSupported) return;
 
-        //     if (ms_NoiseTexture == null)
-        //     {
-        //         ms_NoiseTexture = LoadTexture3D(Config.Instance.noise3DData, Config.Instance.noise3DSize);
-        //         if(ms_NoiseTexture)
-        //             ms_NoiseTexture.hideFlags = kHideFlags;
+            if (ms_NoiseTexture == null)
+            {
+                ms_NoiseTexture = LoadTexture3D(Config.Instance.noise3DData, Config.Instance.noise3DSize);
+                if(ms_NoiseTexture)
+                    ms_NoiseTexture.hideFlags = kHideFlags;
 
-        //         Shader.SetGlobalTexture(ShaderProperties.GlobalNoiseTex3D, ms_NoiseTexture);
-        //         Shader.SetGlobalVector(ShaderProperties.GlobalNoiseParam, Config.Instance.globalNoiseParam);
-        //     }
-        // }
+                Shader.SetGlobalTexture(ShaderProperties.GlobalNoiseTex3D, ms_NoiseTexture);
+                Shader.SetGlobalVector(ShaderProperties.GlobalNoiseParam, Config.Instance.globalNoiseParam);
+            }
+        }
 
-        // static Texture3D LoadTexture3D(TextAsset textData, int size)
-        // {
-        //     if (textData == null)
-        //     {
-        //         Debug.LogErrorFormat("Fail to open Noise 3D Data");
-        //         return null;
-        //     }
+        static Texture3D LoadTexture3D(TextAsset textData, int size)
+        {
+            if (textData == null)
+            {
+                Debug.LogErrorFormat("Fail to open Noise 3D Data");
+                return null;
+            }
 
-        //     var bytes = textData.bytes;
-        //     Debug.Assert(bytes != null);
+            var bytes = textData.bytes;
+            Debug.Assert(bytes != null);
 
-        //     int dataLen = Mathf.Max(0, size * size * size);
-        //     if (bytes.Length != dataLen)
-        //     {
-        //         Debug.LogErrorFormat("Noise 3D Data file has not the proper size {0}x{0}x{0}", size);
-        //         return null;
-        //     }
+            int dataLen = Mathf.Max(0, size * size * size);
+            if (bytes.Length != dataLen)
+            {
+                Debug.LogErrorFormat("Noise 3D Data file has not the proper size {0}x{0}x{0}", size);
+                return null;
+            }
 
-        //     var tex = new Texture3D(size, size, size, TextureFormat.Alpha8, false);
+            var tex = new Texture3D(size, size, size, TextureFormat.Alpha8, false);
 
-        //     var colors = new Color[dataLen];
-        //     for (int i = 0; i < dataLen; ++i)
-        //         colors[i] = new Color32(0, 0, 0, bytes[i]);
+            var colors = new Color[dataLen];
+            for (int i = 0; i < dataLen; ++i)
+                colors[i] = new Color32(0, 0, 0, bytes[i]);
 
-        //     tex.SetPixels(colors);
-        //     tex.Apply();
-        //     return tex;
-        // }
-    
+            tex.SetPixels(colors);
+            tex.Apply();
+            return tex;
+        }
     }
 }

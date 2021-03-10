@@ -17,16 +17,12 @@
 /// Shader code optimization and cleanup by Lex Darlog (aka DRL)
 /// http://forum.unity3d.com/members/lex-drl.67487/
 /// 
-/// Single Pass Stereo Support by Unity Forum User "Abnormalia_"
-/// https://forum.unity.com/members/abnormalia_.356336/ 
-/// 
 Shader "VolumetricLine/SingleLine-LightSaber" {
 	Properties {
 		[NoScaleOffset] _MainTex ("Base (RGB)", 2D) = "white" {}
 		_LineWidth ("Line Width", Range(0.01, 100)) = 1.0
 		_LineScale ("Line Scale", Float) = 1.0
 		_LightSaberFactor ("LightSaberFactor", Range(0.0, 1.0)) = 0.9
-		[MaterialToggle] _UvBasedLightSaberFactor("UV-Based Light Saber Calculation (Anti-Aliased)", Int) = 0
 		_Color ("Main Color", Color) = (1,1,1,1)
 	}
 	SubShader {
