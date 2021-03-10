@@ -301,10 +301,10 @@ namespace VLB
                 _DummyMaterial = DummyMaterial.Create(_BeamShader, gpuInstanced);
             }
 
-            // if (_DummyMaterial == null)
-            // {
-            //     Debug.LogError("No dummy material referenced to VLB config, please try to reset this asset.", this);
-            // }
+            if (_DummyMaterial == null)
+            {
+                Debug.LogError("No dummy material referenced to VLB config, please try to reset this asset.", this);
+            }
 
             RefreshGlobalShaderProperties();
         }

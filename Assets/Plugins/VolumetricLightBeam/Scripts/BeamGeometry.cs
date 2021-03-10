@@ -442,7 +442,7 @@ namespace VLB
 
                 if (isNoiseEnabled)
                 {
-                    // Noise3D.LoadIfNeeded();
+                    Noise3D.LoadIfNeeded();
                     SetMaterialProp(ShaderProperties.NoiseLocal, new Vector4(
                         m_Master.noiseVelocityLocal.x,
                         m_Master.noiseVelocityLocal.y,

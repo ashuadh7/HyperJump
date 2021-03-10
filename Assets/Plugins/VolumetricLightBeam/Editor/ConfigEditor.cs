@@ -47,7 +47,7 @@ namespace VLB
 
             RenderQueueGUIInit();
 
-            // Noise3D.LoadIfNeeded(); // Try to load Noise3D, maybe for the 1st time
+            Noise3D.LoadIfNeeded(); // Try to load Noise3D, maybe for the 1st time
 
             m_TargetConfig = this.target as Config;
         }
