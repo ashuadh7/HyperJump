@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     private GameObject[] pointers;
     [SerializeField]
     private GameObject[] pathWaypoints;
+    [SerializeField]
     private GameObject thinPointLaser, measurementCone;
     [SerializeField]
     private GameObject pointerAnimationObject, m_shotPrefab;
@@ -54,6 +55,7 @@ public class GameManager : MonoBehaviour
     private HyperJump hyperJump; // use for get and set brake
     [SerializeField]
     private DistanceMeasurement distanceMeasurement; // use for get and set brake
+    [SerializeField]
     private LeaningInputAdapter leaningInputAdapter;
 
 
@@ -511,9 +513,9 @@ public class GameManager : MonoBehaviour
         string participantRecord =  inputDataFile.ReadLine();
         string[] participantFields = participantRecord.Split(',');
         participantID = participantFields[0];
-        trialNo = participantFields[0];
-        interfaceName = participantFields[0];
-        pathID = participantFields[0];
+        trialNo = participantFields[1];
+        interfaceName = participantFields[2];
+        pathID = participantFields[3];
         
         switch (interfaceName)
         {

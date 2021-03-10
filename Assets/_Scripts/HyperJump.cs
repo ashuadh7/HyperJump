@@ -71,7 +71,7 @@ public class HyperJump : LocomotionMethodInterface
         movementDirection = _locomotionInput.GetDirectionAxes();
         speedAxis = Mathf.Max(Mathf.Abs(_locomotionInput.GetDirectionAxes().x), Mathf.Abs(_locomotionInput.GetDirectionAxes().z));
         travelSpeed =  speedAxis * GeneralLocomotionSettings.Instance._maxTranslationSpeed;
-        Debug.Log(travelSpeed);
+        // Debug.Log(travelSpeed);
         
         
         // when there is no obstacle in moving direction...
@@ -139,11 +139,11 @@ public class HyperJump : LocomotionMethodInterface
     {
         if (val)
         {
-            _breakTarget = 0;
+            _breakTarget = 1;
         }
         else
         {
-            _breakTarget = 1;
+            _breakTarget = 0;
         }
     }
 

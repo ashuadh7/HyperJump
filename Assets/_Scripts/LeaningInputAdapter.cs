@@ -196,6 +196,7 @@ public class LeaningInputAdapter : LocomotionInputAdapterInterface
     {
         StopCenterOfRotationCalibration();
         CalibrateLeaningKS();
+        _methodIsCalibrated = true;
         Debug.Log("Finished calibration...");
     }
 
