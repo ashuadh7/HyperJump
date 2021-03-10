@@ -303,7 +303,7 @@ namespace VLB
 
             if (_DummyMaterial == null)
             {
-                Debug.LogError("No dummy material referenced to VLB config, please try to reset this asset.", this);
+                // Debug.LogError("No dummy material referenced to VLB config, please try to reset this asset.", this);
             }
 
             RefreshGlobalShaderProperties();

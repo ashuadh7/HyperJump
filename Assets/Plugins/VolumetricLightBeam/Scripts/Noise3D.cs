@@ -89,7 +89,7 @@ namespace VLB
         {
             if (textData == null)
             {
-                Debug.LogErrorFormat("Fail to open Noise 3D Data");
+                // Debug.LogErrorFormat("Fail to open Noise 3D Data");
                 return null;
             }
 
