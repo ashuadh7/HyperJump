@@ -16,18 +16,15 @@
 /// 
 /// Shader code optimization and cleanup by Lex Darlog (aka DRL)
 /// http://forum.unity3d.com/members/lex-drl.67487/
-/// 
+///
 /// Single Pass Stereo Support by Unity Forum User "Abnormalia_"
 /// https://forum.unity.com/members/abnormalia_.356336/ 
 /// 
-Shader "VolumetricLine/SingleLine-LightSaber" {
+Shader "VolumetricLine/SingleLine-TextureAlphaBlended" {
 	Properties {
 		[NoScaleOffset] _MainTex ("Base (RGB)", 2D) = "white" {}
 		_LineWidth ("Line Width", Range(0.01, 100)) = 1.0
 		_LineScale ("Line Scale", Float) = 1.0
-		_LightSaberFactor ("LightSaberFactor", Range(0.0, 1.0)) = 0.9
-		[MaterialToggle] _UvBasedLightSaberFactor("UV-Based Light Saber Calculation (Anti-Aliased)", Int) = 0
-		_Color ("Main Color", Color) = (1,1,1,1)
 	}
 	SubShader {
 		// batching is forcefully disabled here because the shader simply won't work with it:
@@ -46,7 +43,7 @@ Shader "VolumetricLine/SingleLine-LightSaber" {
 			Cull Off
 			ZWrite Off
 			ZTest LEqual
-			Blend One One
+			Blend SrcAlpha OneMinusSrcAlpha
 			Lighting Off
 			
 			CGPROGRAM
@@ -54,9 +51,6 @@ Shader "VolumetricLine/SingleLine-LightSaber" {
 				#pragma vertex vert
 				#pragma fragment frag
 				
-				// tell the cginc file that this is a simplified version of the shader:
-				#define LIGHT_SABER_MODE_ON
-
 				#include "_SingleLineShader.cginc"
 			ENDCG
 		}
