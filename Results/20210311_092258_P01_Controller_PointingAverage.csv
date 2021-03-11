@@ -1,0 +1,2 @@
+﻿Participant,TimeOfDay,TimeSinceStartOfExperiment,JumpNoJump,LeaningGamepad,Interface,TrialNo,PathID,LocationALongPath, PointingPhase,Signed Average Pointing Error Yaw,Signed Average Pointing Error Pitch,Average Absoulte Pointing Error Yaw,Average Absolute Pointing Error Pitch,Configuration Error Yaw,Configuration Error Pitch,Average Response Time,FMSValue
+P01,2021-03-11 9:23:20 AM,21.65077,,,Controller,1,A,1,,,,,,,,,0

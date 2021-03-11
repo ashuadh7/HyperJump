@@ -18,7 +18,9 @@ public class GameManager : MonoBehaviour
     private GameObject vrCamera;
     [SerializeField]
     private GameObject controller;
-     [SerializeField]
+    [SerializeField]
+    private GameObject cameraRig;
+    [SerializeField]
     private GameObject[] pathTargets;
     [SerializeField]
     private GameObject[] pointers;
@@ -70,6 +72,7 @@ public class GameManager : MonoBehaviour
     private StreamWriter waypointDataFile;
     private StreamWriter pointingAveragePathDataFile;
     private bool participantDataFileisOpen = true;
+    private bool writeSummaryOnce = true;
 
 
     //================user and trial Info==================================//
@@ -81,7 +84,7 @@ public class GameManager : MonoBehaviour
     string dateAndTime;
     private string jumpNoJump;
     private string leaningGamepad;
-    private bool hyperJumpOn, hyperJumpRotationOn;
+    private bool hyperJumpOn, hyperJumpRotationOn, leaning;
     
 
     //==================================variables for behavioral data===========================//
@@ -93,7 +96,23 @@ public class GameManager : MonoBehaviour
     private float experimentTime = 0f;
     private List<float>[] pointingErrorListYaw = new List<float>[3];
     private List<float>[] pointingErrorListPitch = new List<float>[3];
+    private List<float>[] pointingErrorListYawAbsolute = new List<float>[3];
+    private List<float>[] pointingErrorListPitchAbsolute = new List<float>[3];
     private List<float>[] pointingTimeList = new List<float>[3];
+    private List<float>[] signedPointingErrorYawTrial = new List<float>[3];
+    private List<float>[] absolutePointingErrorYawTrial = new List<float>[3];
+    private List<float>[] signedPointingErrorPitchTrial = new List<float>[3];
+    private List<float>[] absolutePointingErrorPitchTrial = new List<float>[3];
+    private List<float>[] signedEgoErrorYawTrial = new List<float>[3];
+    private List<float>[] absoluteEgoErrorYawTrial = new List<float>[3];
+    private List<float>[] signedEgoErrorPitchTrial = new List<float>[3];
+    private List<float>[] absoluteEgoErrorPitchTrial = new List<float>[3];
+    private List<float>[] ConfigErrorYawTrial = new List<float>[3];
+    private List<float>[] ConfigErrorPitchTrial = new List<float>[3];
+    private List<float> FMSTrial = new List<float>();
+    private List<float>[] pointingTimeTrial = new List<float>[3];
+    private List<float> DistanceEstimateTrial = new List<float>();
+    
     private float lastWayPointTime = 0, totalJumpDistanceBetweenWaypoints = 0, totalAngularJumpBetweenWaypoints = 0;
     private float timeToPoint;
     private float FMSValue;
@@ -118,7 +137,10 @@ public class GameManager : MonoBehaviour
     {
         get {return _showDistanceMeasurement;}
     }
-    private bool pointingTask;
+    public bool pointingTask
+    {
+        get { return _pointingTask;}
+    }
     private bool firstTime = true;
     private bool shufflePointingList = true;
     private bool distancePrompt = false;
@@ -138,7 +160,7 @@ public class GameManager : MonoBehaviour
     private float travelLookAngle = 0;
     private int CONTROLLERVELOCITYAVERAGEFRAME = 2;
    
-    void Start()
+    void Awake()
     {
         audioPlayer = GetComponent<AudioSource>();
         pointers[0].SetActive(true);
@@ -162,6 +184,22 @@ public class GameManager : MonoBehaviour
             pointingErrorListYaw[i] = new List<float>();
             pointingErrorListPitch[i] = new List<float>();
             pointingTimeList[i] = new List<float>();
+            pointingErrorListYawAbsolute[i] = new List<float>();
+            pointingErrorListPitchAbsolute[i] = new List<float>();
+            
+            // Average for the whole trial
+            signedPointingErrorYawTrial[i] = new List<float>();
+            absolutePointingErrorYawTrial[i] = new List<float>();
+            signedPointingErrorPitchTrial[i] = new List<float>();
+            absolutePointingErrorPitchTrial[i] = new List<float>();
+            signedEgoErrorYawTrial[i] = new List<float>();
+            absoluteEgoErrorYawTrial[i] = new List<float>();
+            signedEgoErrorPitchTrial[i] = new List<float>();
+            absoluteEgoErrorPitchTrial[i] = new List<float>();
+            ConfigErrorPitchTrial[i] = new List<float>();
+            ConfigErrorYawTrial[i] = new List<float>();
+            pointingTimeTrial[i] = new List<float>();
+
         }
         StartCoroutine(Updater());
         StartCoroutine(ControllerVeloctiy());        
@@ -171,10 +209,11 @@ public class GameManager : MonoBehaviour
     {
         while (Application.isPlaying)
         {
+            
             float controllerVelocityAverage = calculateControllerVelocityAverage();
             if (firstTime)
             {
-                if (leaningInputAdapter.IsCalibrated())
+                if (leaningInputAdapter.IsCalibrated()||!leaning)
                 {
                     _pointingTask = true;
                     firstTime = false;
@@ -271,8 +310,10 @@ public class GameManager : MonoBehaviour
                 if (distanceTask)
                 {
                     // Debug.Log("Instruction: " + instruction + ", Target No:" + totalTargetInstance);
+                    // Debug.Log("Experiment Time DistanceTask: " + experimentTime);
                     if (!audioPlayer.isPlaying)
                     {
+                        // Debug.Log("Experiment Time No Audio: " + experimentTime);
                         if(instruction == 0)
                         {
                             yield return new WaitForSeconds(.5f);
@@ -285,8 +326,10 @@ public class GameManager : MonoBehaviour
                             _showDistanceMeasurement = true;
                             if (distancePrompt)
                             {
+                                // Debug.Log("Read Target: " + experimentTime);
                                 yield return new WaitForSeconds(.5f);
                                 audioPlayer.clip = pathInstructions[instruction];
+                                // Debug.Log("Audio Player: " + experimentTime);
                                 audioPlayer.Play();
                                 distancePrompt = false;
                                 measure2ndPointing = true;
@@ -330,7 +373,8 @@ public class GameManager : MonoBehaviour
                                         motionSicknessPrompt = true;
                                         measurementCone.SetActive(false);
                                         thinPointLaser.SetActive(false);
-                                        Debug.Log("Distance Measured; Next target");
+                                        // Debug.Log("Distance Measured; Next target: " + experimentTime);
+                                        audioPlayer.Pause();
                                     }
                                 }
                             }
@@ -399,6 +443,8 @@ public class GameManager : MonoBehaviour
                                 pointingErrorListYaw[i] = new List<float>();
                                 pointingErrorListPitch[i] = new List<float>();
                                 pointingTimeList[i] = new List<float>();
+                                pointingErrorListYawAbsolute[i] = new List<float>();
+                                pointingErrorListPitchAbsolute[i] = new List<float>();
 
                             }
                         }
@@ -414,6 +460,11 @@ public class GameManager : MonoBehaviour
                 {
                     pointingDataFile.Close();
                     participantDataFile.Close();
+                    if (writeSummaryOnce)
+                    {
+                        writeTrialAverageData();
+                        writeSummaryOnce = false;
+                    }
                 }
                 participantDataFileisOpen = false;
                 Application.Quit();
@@ -524,17 +575,42 @@ public class GameManager : MonoBehaviour
         
         switch (interfaceName)
         {
+            
             case "Controller":
             hyperJumpOn = false;
+            hyperJump._enableJumping = false;
+            cameraRig.GetComponent<ControllerInputAdapter>().enabled = true;
+            cameraRig.GetComponent<LeaningInputAdapter>().enabled = false;
+            leaning = false;
+            jumpNoJump = "Nojump";
+            leaningGamepad = "Controller";
             break;
             case "ControllerTeleport":
             hyperJumpOn = true;
+            hyperJump._enableJumping = true;
+            cameraRig.GetComponent<ControllerInputAdapter>().enabled = true;
+            cameraRig.GetComponent<LeaningInputAdapter>().enabled = false;
+            leaning = false;
+            jumpNoJump = "Jump";
+            leaningGamepad = "Controller";
             break;
             case "Leaning":
             hyperJumpOn = false;
+            hyperJump._enableJumping = false;
+            cameraRig.GetComponent<ControllerInputAdapter>().enabled = false;
+            cameraRig.GetComponent<LeaningInputAdapter>().enabled = true;
+            jumpNoJump = "Nojump";
+            leaningGamepad = "Leaning";
+            leaning = true;
             break;
             case "LeaningTeleport":
             hyperJumpOn = true;
+            hyperJump._enableJumping = true;
+            cameraRig.GetComponent<ControllerInputAdapter>().enabled = false;
+            cameraRig.GetComponent<LeaningInputAdapter>().enabled = true;
+            leaning = true;
+            jumpNoJump = "Jump";
+            leaningGamepad = "Leaning";
             break;
             default:
             throw new UnityException ("Mistake in interface name | Check input.txt");
@@ -690,17 +766,17 @@ public class GameManager : MonoBehaviour
             // Conditions of the experiment
             
             // navigating or Pointing
-            if (!pointingTask && !distanceTask && totalTargetInstance !=2)
+            if (!_pointingTask && !distanceTask && totalTargetInstance !=2)
             {
                 navigationOrPointing = "Navigation"; 
                 location = (totalTargetInstance-2) + "__" + (totalTargetInstance -1); 
             }
-            else if (pointingTask || distanceTask)
+            else if (_pointingTask || distanceTask)
             {
                 navigationOrPointing = "Pointing";
                 location = (totalTargetInstance - 1).ToString();
             }
-            else if (!pointingTask && !distanceTask && totalTargetInstance == 2)
+            else if (!_pointingTask && !distanceTask && totalTargetInstance == 2)
             {
                 navigationOrPointing = "Before Calibration";
                 location = (totalTargetInstance-1).ToString();
@@ -728,6 +804,37 @@ public class GameManager : MonoBehaviour
             participantDataFile.Close();  
         }
     }
+    private void writeTrialAverageData()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            StreamReader ifOutputFileExists = new StreamReader ("Results\\" + "SUMMARY.csv", true);
+            ifOutputFileExists.Close ();
+            StreamWriter trialDataFile = new StreamWriter ("Results\\" + "SUMMARY.csv", true, System.Text.Encoding.UTF8, 1024 * 3);
+            string nextLine = participantID + "," + System.DateTime.Now + "," + jumpNoJump + "," + leaningGamepad + "," + interfaceName + "," + trialNo + "," + pathID + "," ;
+            string pointingPhase = "";
+            if (i == 0) pointingPhase = "rapid1stPointing";
+            if (i == 1) pointingPhase = "rapid2ndPointing";
+            if (i == 2) pointingPhase = "pointingAndDistanceMeasurement";
+            nextLine += pointingPhase + ",";
+            nextLine += floatListAverage(signedPointingErrorYawTrial[i]) + ",";
+            nextLine += floatListAverage(signedPointingErrorPitchTrial[i]) + ",";
+            nextLine += floatListAverage(absolutePointingErrorYawTrial[i]) + ",";
+            nextLine += floatListAverage(absolutePointingErrorPitchTrial[i]) + ",";
+            nextLine += floatListAverage(signedEgoErrorYawTrial[i]) + ",";
+            nextLine += floatListAverage(signedEgoErrorPitchTrial[i]) + ",";
+            nextLine += floatListAverage(absoluteEgoErrorYawTrial[i]) + ",";            
+            nextLine += floatListAverage(absoluteEgoErrorPitchTrial[i]) + ",";
+            nextLine += floatListAverage(ConfigErrorYawTrial[i]) + ",";
+            nextLine += floatListAverage(ConfigErrorPitchTrial[i]) + ",";
+            nextLine += floatListAverage(pointingTimeTrial[i]) + ",";
+            if (i==2) nextLine += floatListAverage(DistanceEstimateTrial);
+            if (i==2) nextLine += floatListAverage(FMSTrial);
+            trialDataFile.WriteLine(nextLine);
+            trialDataFile.Close();
+        }
+            
+    }
     private void writePointingData(int pointingPhaseNo)
     {
         if (writeData)
@@ -746,6 +853,18 @@ public class GameManager : MonoBehaviour
                 pointingErrorListYaw[pointingPhaseNo].Add(pointingErrorYaw);
                 pointingErrorListPitch[pointingPhaseNo].Add(pointingErrorPitch);
                 pointingTimeList[pointingPhaseNo].Add(timeToPoint);
+                pointingErrorListYawAbsolute[pointingPhaseNo].Add(pointingErrorYawAbsolute);
+                pointingErrorListPitchAbsolute[pointingPhaseNo].Add(pointingErrorPitchAbsolute);
+                
+                if (totalTargetInstance!=2)
+                {
+                    signedPointingErrorYawTrial[pointingPhaseNo].Add(pointingErrorYaw);
+                    absolutePointingErrorYawTrial[pointingPhaseNo].Add(pointingErrorYawAbsolute);
+                    signedPointingErrorPitchTrial[pointingPhaseNo].Add(pointingErrorPitch);
+                    absolutePointingErrorPitchTrial[pointingPhaseNo].Add(pointingErrorPitchAbsolute);
+                    pointingTimeTrial[pointingPhaseNo].Add(timeToPoint);
+                }
+                
             }
             string pointingPhase = "";
             if (pointingPhaseNo == 0) pointingPhase = "rapid1stPointing";
@@ -785,6 +904,8 @@ public class GameManager : MonoBehaviour
             {
                 float[] averagePointingErrorYaw = new float[3];
                 float[] averagePointingErrorPitch = new float[3];
+                float[] averagePointingErrorYawAbsolute = new float[3];
+                float[] averagePointingErrorPitchAbsolute = new float[3];
                 float[] averagePointingTime = new float[3];
                 float[] sdPointingErrorYaw = new float[3];
                 float[] sdPointingErrorPitch = new float[3];
@@ -793,9 +914,19 @@ public class GameManager : MonoBehaviour
                 {
                     averagePointingErrorYaw[i] = circularAverage(pointingErrorListYaw[i]);
                     averagePointingErrorPitch[i] = circularAverage(pointingErrorListPitch[i]);
+                    averagePointingErrorYawAbsolute[i] = circularAverage(pointingErrorListYawAbsolute[i]);
+                    averagePointingErrorPitchAbsolute[i] = circularAverage(pointingErrorListPitchAbsolute[i]);
                     averagePointingTime[i] = floatListAverage(pointingTimeList[i]);
                     sdPointingErrorYaw[i] = circularStandardDeviation (pointingErrorListYaw[i]);
                     sdPointingErrorPitch[i] = circularStandardDeviation (pointingErrorListPitch[i]);
+
+                    // Add data to final list
+                    signedEgoErrorYawTrial[i].Add(averagePointingErrorYaw[i]);
+                    absoluteEgoErrorYawTrial[i].Add(averagePointingErrorYawAbsolute[i]);
+                    signedEgoErrorPitchTrial[i].Add(averagePointingErrorPitch[i]);
+                    absoluteEgoErrorPitchTrial[i].Add(averagePointingErrorPitchAbsolute[i]);
+                    ConfigErrorPitchTrial[i].Add(sdPointingErrorYaw[i]);
+                    ConfigErrorYawTrial[i].Add(sdPointingErrorPitch[i]);
                 }
 
                 pointingAverageDataFile = new StreamWriter ("Results\\" + dateAndTime + "_" +  participantID + "_" + interfaceName + "_" + "PointingAverage" + ".csv", true, System.Text.Encoding.UTF8, 1024 * 3);
@@ -808,10 +939,12 @@ public class GameManager : MonoBehaviour
 
                     string nextLine = participantID + "," + System.DateTime.Now + "," + experimentTime + "," + jumpNoJump + "," + leaningGamepad + "," + interfaceName + "," + trialNo + "," + pathID + "," + (totalTargetInstance-1) + "," + pointingPhase + ",";
                     nextLine += averagePointingErrorYaw[i] + "," + averagePointingErrorPitch[i] + ",";
-                    nextLine += Mathf.Abs(averagePointingErrorYaw[i]) + "," + Mathf.Abs(averagePointingErrorPitch[i]) + ",";
+                    nextLine += averagePointingErrorYawAbsolute[i] + "," + averagePointingErrorPitchAbsolute[i] + ",";
                     nextLine += sdPointingErrorYaw[i] + "," + sdPointingErrorPitch[i] + ",";
                     nextLine += averagePointingTime[i];
                     if (i == 2)  nextLine += "," + FMSValue;
+                    FMSTrial.Add(FMSValue);
+                    DistanceEstimateTrial.Add(distanceMeasurement.distanceEstimate);
                     pointingAverageDataFile.WriteLine(nextLine);
 
                 }
@@ -1202,5 +1335,11 @@ public class GameManager : MonoBehaviour
         }
     }
     //=============Mathmatical Calculations================//
+
+    //====================Set and Get Functions===========//
+    public void setPointingTask(bool val)
+    {
+       _pointingTask = val;
+    }
 
 }

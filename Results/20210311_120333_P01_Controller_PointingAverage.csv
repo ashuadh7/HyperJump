@@ -1,0 +1,14 @@
+﻿Participant,TimeOfDay,TimeSinceStartOfExperiment,JumpNoJump,LeaningGamepad,Interface,TrialNo,PathID,LocationALongPath, PointingPhase,Signed Average Pointing Error Yaw,Signed Average Pointing Error Pitch,Average Absoulte Pointing Error Yaw,Average Absolute Pointing Error Pitch,Configuration Error Yaw,Configuration Error Pitch,Average Response Time,FMSValue
+P01,2021-03-11 12:03:55 PM,21.23566,Nojump,Controller,Controller,1,A,1,,,,,,,,,100
+P01,2021-03-11 12:04:23 PM,49.80721,Nojump,Controller,Controller,1,A,2,rapid1stPointing,72.58588,4.30821,72.58588,8.47524,2.580534,8.490788,0.2363387
+P01,2021-03-11 12:04:23 PM,49.80721,Nojump,Controller,Controller,1,A,2,rapid2ndPointing,71.52304,-9.40928,71.52304,9.40928,0.4959506,0.3339672,0.0169203
+P01,2021-03-11 12:04:23 PM,49.80721,Nojump,Controller,Controller,1,A,2,distanceJudgmentAnd2ndPointing,71.97215,-8.486608,71.97215,8.486608,0.07401877,0.421049,0.1746577,75.58554
+P01,2021-03-11 12:04:54 PM,81.10273,Nojump,Controller,Controller,1,A,3,rapid1stPointing,78.9031,-0.8541169,78.9031,8.375376,1.81882,9.620177,0.2544258
+P01,2021-03-11 12:04:54 PM,81.10273,Nojump,Controller,Controller,1,A,3,rapid2ndPointing,65.54544,-13.02182,65.54544,13.02182,0.673059,0.1907745,0.05549793
+P01,2021-03-11 12:04:54 PM,81.10273,Nojump,Controller,Controller,1,A,3,distanceJudgmentAnd2ndPointing,65.76284,-12.17252,65.76284,12.17252,0.5308273,0.2088895,0.2922717,100
+P01,2021-03-11 12:05:33 PM,119.3718,Nojump,Controller,Controller,1,A,4,rapid1stPointing,78.2641,2.963178,78.2641,3.819686,4.586833,3.683798,0.4879719
+P01,2021-03-11 12:05:33 PM,119.3718,Nojump,Controller,Controller,1,A,4,rapid2ndPointing,76.83969,-7.524128,76.83969,7.524128,0.4766354,0.6062093,0.0156891
+P01,2021-03-11 12:05:33 PM,119.3718,Nojump,Controller,Controller,1,A,4,distanceJudgmentAnd2ndPointing,76.57504,-8.074744,76.57504,8.074744,0.6729136,0.2353194,0.4827974,100
+P01,2021-03-11 12:06:08 PM,154.7631,Nojump,Controller,Controller,1,A,5,rapid1stPointing,73.42615,-1.711269,73.42615,2.760679,3.57692,3.076509,0.09441166
+P01,2021-03-11 12:06:08 PM,154.7631,Nojump,Controller,Controller,1,A,5,rapid2ndPointing,70.72263,-12.5599,70.72263,12.5599,0.3533272,0.4951608,0.07025923
+P01,2021-03-11 12:06:08 PM,154.7631,Nojump,Controller,Controller,1,A,5,distanceJudgmentAnd2ndPointing,71.0349,-12.51901,71.0349,12.51901,0.4626775,0.3397758,0.2149326,100

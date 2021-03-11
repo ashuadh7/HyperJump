@@ -1,0 +1,8 @@
+﻿Participant,TimeOfDay,TimeSinceStartOfExperiment,JumpNoJump,LeaningGamepad,Interface,TrialNo,PathID,LocationALongPath, PointingPhase,Signed Average Pointing Error Yaw,Signed Average Pointing Error Pitch,Average Absoulte Pointing Error Yaw,Average Absolute Pointing Error Pitch,Configuration Error Yaw,Configuration Error Pitch,Average Response Time,FMSValue
+P01,2021-03-11 9:31:14 AM,21.47886,,,Controller,1,A,1,,,,,,,,,100
+P01,2021-03-11 9:31:44 AM,51.37013,,,Controller,1,A,2,rapid1stPointing,86.5872,3.488973,86.5872,3.488973,2.597234,0.1545053,0.3838917
+P01,2021-03-11 9:31:44 AM,51.37013,,,Controller,1,A,2,rapid2ndPointing,85.51151,5.037066,85.51151,5.037066,0.4338668,0,0.0139036
+P01,2021-03-11 9:31:44 AM,51.37013,,,Controller,1,A,2,distanceJudgmentAnd2ndPointing,86.47824,5.717912,86.47824,5.717912,0.5886856,0.192815,0.8288904,100
+P01,2021-03-11 9:32:45 AM,113.0476,,,Controller,1,A,3,rapid1stPointing,90.84539,5.610103,90.84539,5.610103,19.8852,3.347709,0.1529473
+P01,2021-03-11 9:32:45 AM,113.0476,,,Controller,1,A,3,rapid2ndPointing,55.72652,-14.59473,55.72652,14.59473,3.194956,16.46334,0.01364223
+P01,2021-03-11 9:32:45 AM,113.0476,,,Controller,1,A,3,distanceJudgmentAnd2ndPointing,55.21077,-14.7432,55.21077,14.7432,2.946061,16.83733,0.7287629,0
