@@ -25,6 +25,7 @@ public class HyperJump : LocomotionMethodInterface
     private float _breakState = 0f;
     private float _breakTarget = 0f;
     private float _currentBreakingVelocity = 0f;
+    private float _speedAxis = 0f;
     
     private GameObject _camera;
     
@@ -57,7 +58,6 @@ public class HyperJump : LocomotionMethodInterface
         saturationTimer -= deltaTime;
         RaycastHit hit;
         Vector3 movementDirection;
-        float speedAxis;
         float travelSpeed;
         
         if (!isSimulation)
@@ -69,8 +69,8 @@ public class HyperJump : LocomotionMethodInterface
         }
         
         movementDirection = _locomotionInput.GetDirectionAxes();
-        speedAxis = Mathf.Max(Mathf.Abs(_locomotionInput.GetDirectionAxes().x), Mathf.Abs(_locomotionInput.GetDirectionAxes().z));
-        travelSpeed =  speedAxis * GeneralLocomotionSettings.Instance._maxTranslationSpeed;
+        _speedAxis = Mathf.Max(Mathf.Abs(_locomotionInput.GetDirectionAxes().x), Mathf.Abs(_locomotionInput.GetDirectionAxes().z));
+        travelSpeed =  _speedAxis * GeneralLocomotionSettings.Instance._maxTranslationSpeed;
         Debug.Log(travelSpeed);
         
         
@@ -90,7 +90,7 @@ public class HyperJump : LocomotionMethodInterface
                 // normalize jump size, because there was a deadzone and we want to start at 0
                 float threshold = _jumpingThresholdMeterPerSecond /
                                   GeneralLocomotionSettings.Instance._maxTranslationSpeed;
-                float normalizedAxis = (speedAxis - threshold) * 1 / (1 - threshold);
+                float normalizedAxis = (_speedAxis - threshold) * 1 / (1 - threshold);
                 
                 targetPosition += _minJumpSize * movementDirection + normalizedAxis * (DetermineMaximumJumpSize() - _minJumpSize) * movementDirection;
 
@@ -155,5 +155,10 @@ public class HyperJump : LocomotionMethodInterface
     public override void SetTeleport(bool val)
     {
         _enableJumping = val;
+    }
+
+    public override float GetSpeedAxis()
+    {
+        return _speedAxis;
     }
 }

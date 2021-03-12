@@ -20,4 +20,6 @@ public abstract class LocomotionMethodInterface : MonoBehaviour
     public abstract void SetBreak(bool val);
     public abstract bool GetBreak();
     public abstract void SetTeleport(bool val);
+
+    public abstract float GetSpeedAxis();
 }
